@@ -41,7 +41,6 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); 
             font-weight: 600; font-size: 0.95rem; user-select: none; cursor: pointer;
         }
-        .db-card.hidden { display: none; }
 
         #timeline-view { 
             display: none; height: calc(100vh - 60px); width: 100%; background: #121212; 
@@ -49,20 +48,28 @@
         }
         #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
         #timeline-canvas:active { cursor: grabbing; }
+        
+        /* PC 타임라인 검색 UI 작게 조정 */
         .timeline-controls { 
-            position: absolute; bottom: 20px; left: 5%; right: 5%; 
-            background: rgba(255,255,255,0.95); padding: 10px 15px; border-radius: 30px; 
-            display: flex; gap: 10px; align-items: center; justify-content: space-between;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.95); padding: 8px 15px; border-radius: 30px; 
+            display: flex; gap: 10px; align-items: center; width: 90%; max-width: 400px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4); z-index: 600; 
         }
-        #tl-search { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.9rem; }
+        #tl-search { flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.85rem; outline: none; }
 
         .year-badge { display: inline-block; background: #e1f5ff; color: #007bbd; padding: 5px 12px; border-radius: 15px; font-weight: 700; margin-bottom: 10px; font-size: 0.85rem; }
         .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
         #ed-content { width: 100%; min-height: 350px; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; line-height: 1.6; font-size: 1rem; }
 
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: flex-end; }
+        /* PC용 중앙 작게 나타나는 모달 스타일 */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: flex-end; justify-content: center; }
         .modal-content { background: white; padding: 30px 20px; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        
+        @media (min-width: 600px) {
+            .modal { align-items: center; }
+            .modal-content { border-radius: 20px; width: 500px; max-height: 70vh; }
+        }
         
         .btn-main { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; white-space: nowrap; }
         .auto-link { color: var(--accent); font-weight: bold; text-decoration: underline; }
@@ -123,8 +130,8 @@
     <section id="timeline-view">
         <canvas id="timeline-canvas"></canvas>
         <div class="timeline-controls">
-            <input type="text" id="tl-search" placeholder="검색..." oninput="drawTimeline()">
-            <button onclick="goHome()" style="border:none; background:none; font-weight:bold; color:var(--primary); padding:5px 10px;">홈</button>
+            <input type="text" id="tl-search" placeholder="타임라인 내 검색..." oninput="drawTimeline()">
+            <button onclick="goHome()" style="border:none; background:none; font-weight:bold; color:var(--primary); padding:5px 10px; cursor:pointer;">홈</button>
         </div>
     </section>
 </main>
@@ -186,7 +193,6 @@
         `).join('');
     }
 
-    // 모바일/PC 통합 롱프레스 (카테고리 이동용)
     let longPressTimer;
     function startLongPress(e, title, currentCat) {
         longPressTimer = setTimeout(() => {
@@ -194,7 +200,7 @@
             if(targetCat && categories.includes(targetCat) && targetCat !== currentCat) {
                 moveItem(title, targetCat);
             }
-        }, 800); // 0.8초간 누르면 팝업 발생
+        }, 800);
     }
     function cancelLongPress() { clearTimeout(longPressTimer); }
 
@@ -212,7 +218,6 @@
         });
     }
 
-    // --- 마우스 & 터치 통합 타임라인 이동 로직 ---
     function handleDown(x, y) { isDragging = true; lastX = x; lastY = y; }
     function handleMove(x, y) {
         if (!isDragging) return;
@@ -269,18 +274,22 @@
             const endYear = years.length > 1 ? parseInt(years[1]) : startYear + 1;
             const xStart = centerX + (startYear - 2000) * (yearWidth / 100);
             const xEnd = centerX + (endYear - 2000) * (yearWidth / 100);
-            const width = Math.max(Math.abs(xEnd - xStart), 20);
+            const width = Math.max(Math.abs(xEnd - xStart), 25);
             if (xStart + width < 0 || xStart > canvas.width) return;
 
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
             ctx.fillStyle = isMatch ? "#ffff00" : (catColors[d.category] || "#00a8ff");
             ctx.globalAlpha = 0.8;
-            ctx.fillRect(xStart, yPos, width, 35);
+            ctx.roundRect ? ctx.beginPath() || ctx.roundRect(xStart, yPos, width, 35, 5) || ctx.fill() : ctx.fillRect(xStart, yPos, width, 35);
+            
             ctx.globalAlpha = 1.0;
-            ctx.fillStyle = "white"; ctx.font = "bold 12px Pretendard";
-            ctx.fillText(d.title, xStart + 5, yPos - 5);
+            ctx.fillStyle = isMatch ? "#000" : "white"; ctx.font = "bold 12px Pretendard";
+            // 1. 타임라인 내 연도 표시 추가
+            const displayLabel = `${d.title} (${d.year})`;
+            ctx.fillText(displayLabel, xStart + 5, yPos - 5);
+            
             d._tlPos = { x: xStart, y: yPos, w: width, h: 35 };
-            yPos = (yPos + 80 > canvas.height - 100) ? 60 : yPos + 80;
+            yPos = (yPos + 80 > canvas.height - 120) ? 60 : yPos + 80;
         });
     }
 
