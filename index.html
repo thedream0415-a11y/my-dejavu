@@ -93,7 +93,6 @@
         <div id="category-container">지식을 불러오는 중...</div>
     </section>
 
-    <!-- 다른 섹션들은 생략하지 않고 모두 유지 -->
     <section id="doc-view" class="section">
         <div style="background:white; padding:25px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
             <div id="dv-year-area"></div>
@@ -151,6 +150,7 @@
 
     let offsetX = 0, scale = 1.0, isDragging = false;
     let lastX = 0, lastY = 0, startTouchX = 0, startTouchY = 0, initialPinchDist = 0;
+    let dragDistance = 0;
     const canvas = document.getElementById('timeline-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -174,79 +174,127 @@
             container.innerHTML = "<p style='text-align:center; color:#888;'>등록된 지식이 없습니다. [+ 메모]를 눌러 추가해 보세요!</p>";
             return;
         }
-        container.innerHTML = categories.map(cat => `
-            <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                <div class="category-header">
-                    <span class="category-title">${cat}</span>
-                    <button class="edit-cat-btn" onclick="renameCategory('${cat}')">✏️</button>
-                </div>
-                <div class="list-grid">
-                    ${allData.filter(d => (d.category || "지식 저장소") === cat)
-                        .map(d => `
+        
+        const html = categories.map(cat => {
+            const items = allData.filter(d => (d.category || "지식 저장소") === cat);
+            return `
+                <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                    <div class="category-header">
+                        <span class="category-title">${cat}</span>
+                        <button class="edit-cat-btn" onclick="renameCategory('${cat}')">✏️</button>
+                    </div>
+                    <div class="list-grid">
+                        ${items.map(d => `
                             <div class="db-card" 
                                  draggable="true" 
                                  ondragstart="drag(event, '${d.title}')" 
                                  onclick="loadDoc('${d.title}')"
-                                 onmousedown="startLongPress(event, '${d.title}', '${cat}')"
+                                 onmousedown="startLongPress(event, '${d.title}')"
                                  onmouseup="cancelLongPress()"
-                                 ontouchstart="startLongPress(event, '${d.title}', '${cat}')"
+                                 ontouchstart="startLongPress(event, '${d.title}')"
                                  ontouchend="cancelLongPress()">
                                 ${d.title}
                             </div>`).join('')}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        container.innerHTML = html;
     }
 
-    // --- 이하 로직 동일 (터치 클릭 보정 포함) ---
     let longPressTimer;
-    function startLongPress(e, title, currentCat) {
-        longPressTimer = setTimeout(() => {
-            const targetCat = prompt(`'${title}' 항목을 이동할 카테고리명을 입력하세요:`, currentCat);
-            if(targetCat && categories.includes(targetCat) && targetCat !== currentCat) {
-                moveItem(title, targetCat);
-            }
-        }, 800);
+    let currentDragTitle = "";
+
+    function startLongPress(e, title) {
+        currentDragTitle = title;
+        longPressTimer = setTimeout(() => {}, 800);
     }
     function cancelLongPress() { clearTimeout(longPressTimer); }
 
     async function moveItem(title, newCat) {
-        const item = allData.find(d => d.title === title);
-        item.category = newCat;
-        renderHome();
-        await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title, category: newCat }) });
+        const itemIndex = allData.findIndex(d => d.title === title);
+        if (itemIndex > -1) {
+            if(allData[itemIndex].category === newCat) return;
+            allData[itemIndex].category = newCat;
+            renderHome();
+            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title, category: newCat }) });
+        }
     }
 
-    function filterHomeItems() {
-        const query = document.getElementById('home-search').value.toLowerCase();
-        document.querySelectorAll('.db-card').forEach(card => {
-            card.classList.toggle('hidden', !card.innerText.toLowerCase().includes(query));
-        });
+    function drag(e, title) { e.dataTransfer.setData("title", title); }
+    function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+    function drop(e, newCat) {
+        e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+        const title = e.dataTransfer.getData("title") || currentDragTitle;
+        moveItem(title, newCat);
     }
 
-    function handleDown(x, y) { isDragging = true; lastX = x; lastY = y; }
+    // --- 타임라인 인터랙션 수정 부분 ---
+    function handleDown(x, y) { 
+        isDragging = true; 
+        lastX = x; 
+        lastY = y; 
+        dragDistance = 0; 
+    }
+    
     function handleMove(x, y) {
         if (!isDragging) return;
-        offsetX += (x - lastX);
+        const dx = x - lastX;
+        const dy = y - lastY;
+        offsetX += dx;
+        dragDistance += Math.abs(dx) + Math.abs(dy);
         lastX = x;
+        lastY = y;
         drawTimeline();
     }
+    
     function handleUp() { isDragging = false; }
 
-    canvas.addEventListener('mousedown', e => handleDown(e.clientX, e.clientY));
-    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', handleUp);
+    // PC 클릭 로직 (수정)
+    canvas.addEventListener('click', e => {
+        if (dragDistance > 10) return; // 드래그 중에는 클릭 무시
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        checkTimelineClick(mx, my);
+    });
 
+    // 모바일 터치 로직 (수정)
     canvas.addEventListener('touchstart', e => {
         if (e.target === canvas) e.preventDefault();
         if(e.touches.length === 1) {
-            startTouchX = e.touches[0].clientX;
-            startTouchY = e.touches[0].clientY;
-            handleDown(startTouchX, startTouchY);
+            const touch = e.touches[0];
+            startTouchX = touch.clientX;
+            startTouchY = touch.clientY;
+            handleDown(touch.clientX, touch.clientY);
         }
         else if(e.touches.length === 2) initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }, {passive: false});
 
+    canvas.addEventListener('touchend', e => {
+        if (dragDistance < 10 && e.changedTouches.length === 1) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.changedTouches[0];
+            const mx = touch.clientX - rect.left;
+            const my = touch.clientY - rect.top;
+            checkTimelineClick(mx, my);
+        }
+        handleUp();
+    });
+
+    function checkTimelineClick(mx, my) {
+        allData.forEach(d => {
+            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) {
+                openModal(d);
+            }
+        });
+    }
+
+    // --- 나머지 로직 동일 ---
+    canvas.addEventListener('mousedown', e => handleDown(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', handleUp);
     canvas.addEventListener('touchmove', e => {
         if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
         else if(e.touches.length === 2) {
@@ -257,24 +305,6 @@
             drawTimeline();
         }
     }, {passive: false});
-
-    canvas.addEventListener('touchend', e => {
-        if (e.changedTouches.length === 1) {
-            const endX = e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].clientY;
-            const dist = Math.hypot(endX - startTouchX, endY - startTouchY);
-            if (dist < 8) { 
-                const rect = canvas.getBoundingClientRect();
-                const clickX = endX - rect.left;
-                const clickY = endY - rect.top;
-                allData.forEach(d => {
-                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) openModal(d);
-                });
-            }
-        }
-        handleUp();
-    });
-
     canvas.addEventListener('wheel', e => { e.preventDefault(); scale *= (e.deltaY > 0 ? 0.9 : 1.1); drawTimeline(); }, {passive:false});
 
     function drawTimeline() {
@@ -318,46 +348,28 @@
         });
     }
 
-    canvas.addEventListener('click', e => {
-        if (navigator.maxTouchPoints > 0) return; 
-        if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-        allData.forEach(d => {
-            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) openModal(d);
-        });
-    });
-
     async function save() {
         const title = document.getElementById('ed-title').value.trim();
         const year = document.getElementById('ed-year').value.trim();
         const content = document.getElementById('ed-content').innerHTML;
         if(!title) return alert("제목을 입력하세요.");
-        document.getElementById('sv-btn').innerText = "저장 중...";
-        await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title, year, content, category: "지식 저장소" }) });
-        location.reload();
+        document.getElementById('sv-btn').innerText = "전송 중...";
+        const newData = { title, year, content, category: "지식 저장소" };
+        const existingIdx = allData.findIndex(d => d.title === title);
+        if(existingIdx > -1) allData[existingIdx] = newData;
+        else allData.push(newData);
+        fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
+        goHome();
     }
 
     async function renameCategory(oldName) {
         const newName = prompt("카테고리 이름을 수정합니다:", oldName);
         if(newName && newName !== oldName) {
-            const targets = allData.filter(d => d.category === oldName);
             categories = categories.map(c => c === oldName ? newName : c);
-            targets.forEach(d => d.category = newName);
+            allData.forEach(d => { if(d.category === oldName) d.category = newName; });
             renderHome();
-            for (const item of targets) {
-                await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title: item.title, category: newName }) });
-            }
+            await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ oldCategory: oldName, newCategory: newName }) });
         }
-    }
-
-    function drag(e, title) { e.dataTransfer.setData("title", title); }
-    function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-    function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-    function drop(e, newCat) {
-        e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-        const title = e.dataTransfer.getData("title");
-        moveItem(title, newCat);
     }
 
     async function loadDoc(title) {
@@ -366,12 +378,14 @@
         document.getElementById('dv-title').innerText = title;
         document.getElementById('dv-year-area').innerHTML = item.year ? `<div class="year-badge">📅 ${item.year}</div>` : "";
         let content = item.content || "내용이 없습니다.";
-        allData.forEach(d => {
-            if(d.title !== title) {
-                const safeTitle = d.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                content = content.split(new RegExp(safeTitle, 'g')).join(`<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
-            }
-        });
+        if (allData.length < 500) { 
+            allData.forEach(d => {
+                if(d.title !== title && content.includes(d.title)) {
+                    const safeTitle = d.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    content = content.split(new RegExp(safeTitle, 'g')).join(`<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
+                }
+            });
+        }
         document.getElementById('dv-content').innerHTML = content;
     }
 
@@ -390,7 +404,7 @@
         document.getElementById(id).style.display = 'block';
         window.scrollTo(0,0);
     }
-    function goHome() { showSection('home-view'); init(); }
+    function goHome() { showSection('home-view'); renderHome(); }
     function showEditor() { showSection('edit-view'); document.getElementById('ed-title').value=""; document.getElementById('ed-year').value=""; document.getElementById('ed-content').innerHTML=""; }
     function showTimeline() {
         canvas.width = window.innerWidth; canvas.height = window.innerHeight - 60;
@@ -408,6 +422,12 @@
     function addCategory() {
         const name = prompt("새로운 카테고리 이름을 입력하세요:");
         if(name && !categories.includes(name)) { categories.push(name); renderHome(); }
+    }
+    function filterHomeItems() {
+        const query = document.getElementById('home-search').value.toLowerCase();
+        document.querySelectorAll('.db-card').forEach(card => {
+            card.classList.toggle('hidden', !card.innerText.toLowerCase().includes(query));
+        });
     }
 
     window.onload = init;
