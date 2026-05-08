@@ -49,7 +49,6 @@
         #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
         #timeline-canvas:active { cursor: grabbing; }
         
-        /* PC 타임라인 검색 UI 작게 조정 */
         .timeline-controls { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             background: rgba(255,255,255,0.95); padding: 8px 15px; border-radius: 30px; 
@@ -62,7 +61,6 @@
         .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
         #ed-content { width: 100%; min-height: 350px; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; line-height: 1.6; font-size: 1rem; }
 
-        /* PC용 중앙 작게 나타나는 모달 스타일 */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: flex-end; justify-content: center; }
         .modal-content { background: white; padding: 30px 20px; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
         
@@ -152,7 +150,7 @@
     const catColors = { "지식 저장소": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
 
     let offsetX = 0, scale = 1.0, isDragging = false;
-    let lastX = 0, lastY = 0, initialPinchDist = 0;
+    let lastX = 0, lastY = 0, startTouchX = 0, startTouchY = 0, initialPinchDist = 0;
     const canvas = document.getElementById('timeline-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -233,7 +231,11 @@
 
     canvas.addEventListener('touchstart', e => {
         if (e.target === canvas) e.preventDefault();
-        if(e.touches.length === 1) handleDown(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 1) {
+            startTouchX = e.touches[0].clientX;
+            startTouchY = e.touches[0].clientY;
+            handleDown(e.touches[0].clientX, e.touches[0].clientY);
+        }
         else if(e.touches.length === 2) initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }, {passive: false});
 
@@ -247,7 +249,21 @@
             drawTimeline();
         }
     }, {passive: false});
-    canvas.addEventListener('touchend', handleUp);
+
+    canvas.addEventListener('touchend', e => {
+        // 모바일 터치 클릭 판정: 손가락을 뗀 좌표가 시작 좌표와 거의 같으면 클릭으로 인식
+        if (e.changedTouches.length === 1) {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const dist = Math.hypot(endX - startTouchX, endY - startTouchY);
+            if (dist < 10) { // 10픽셀 미만 이동시 클릭으로 간주
+                const rect = canvas.getBoundingClientRect();
+                checkTimelineClick(endX - rect.left, endY - rect.top);
+            }
+        }
+        handleUp();
+    });
+
     canvas.addEventListener('wheel', e => { e.preventDefault(); scale *= (e.deltaY > 0 ? 0.9 : 1.1); drawTimeline(); }, {passive:false});
 
     function drawTimeline() {
@@ -280,11 +296,15 @@
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
             ctx.fillStyle = isMatch ? "#ffff00" : (catColors[d.category] || "#00a8ff");
             ctx.globalAlpha = 0.8;
-            ctx.roundRect ? ctx.beginPath() || ctx.roundRect(xStart, yPos, width, 35, 5) || ctx.fill() : ctx.fillRect(xStart, yPos, width, 35);
+            
+            // 그리기
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(xStart, yPos, width, 35, 5);
+            else ctx.rect(xStart, yPos, width, 35);
+            ctx.fill();
             
             ctx.globalAlpha = 1.0;
             ctx.fillStyle = isMatch ? "#000" : "white"; ctx.font = "bold 12px Pretendard";
-            // 1. 타임라인 내 연도 표시 추가
             const displayLabel = `${d.title} (${d.year})`;
             ctx.fillText(displayLabel, xStart + 5, yPos - 5);
             
@@ -293,13 +313,19 @@
         });
     }
 
+    function checkTimelineClick(mx, my) {
+        allData.forEach(d => {
+            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) {
+                openModal(d);
+            }
+        });
+    }
+
     canvas.addEventListener('click', e => {
+        // 드래그 중에는 클릭 무시 (PC 대응)
         if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-        allData.forEach(d => {
-            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) openModal(d);
-        });
+        checkTimelineClick(e.clientX - rect.left, e.clientY - rect.top);
     });
 
     async function save() {
