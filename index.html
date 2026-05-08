@@ -26,35 +26,29 @@
         .section { display: none; padding: 20px 15px; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 홈 뷰 검색 및 툴바 */
         .home-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         #home-search { flex: 1; min-width: 200px; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 1rem; }
         
-        /* 카테고리 디자인 */
         .category-group { background: rgba(0,0,0,0.03); border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 2px dashed transparent; }
         .category-group.drag-over { border-color: var(--accent); background: rgba(0,168,255,0.08); }
-        .category-header { margin-bottom: 12px; }
-        .category-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); padding: 5px; }
+        .category-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .category-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+        .edit-cat-btn { cursor: pointer; font-size: 0.9rem; color: #888; border: none; background: none; }
 
-        /* 지식 카드 그리드 */
-        .list-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-            gap: 12px; min-height: 60px; 
-        }
+        .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; min-height: 60px; }
         .db-card { 
             background: white; padding: 18px 10px; border-radius: 12px; text-align: center; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); 
-            font-weight: 600; font-size: 0.95rem; user-select: none;
+            font-weight: 600; font-size: 0.95rem; user-select: none; cursor: pointer;
         }
         .db-card.hidden { display: none; }
 
-        /* 타임라인 뷰 (터치 최적화) */
         #timeline-view { 
             display: none; height: calc(100vh - 60px); width: 100%; background: #121212; 
             overflow: hidden; position: fixed; top: 60px; left: 0; z-index: 500; touch-action: none; 
         }
-        #timeline-canvas { width: 100%; height: 100%; display: block; }
+        #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+        #timeline-canvas:active { cursor: grabbing; }
         .timeline-controls { 
             position: absolute; bottom: 20px; left: 5%; right: 5%; 
             background: rgba(255,255,255,0.95); padding: 10px 15px; border-radius: 30px; 
@@ -63,25 +57,17 @@
         }
         #tl-search { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.9rem; }
 
-        /* 에디터 및 문서 보기 */
         .year-badge { display: inline-block; background: #e1f5ff; color: #007bbd; padding: 5px 12px; border-radius: 15px; font-weight: 700; margin-bottom: 10px; font-size: 0.85rem; }
         .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
         #ed-content { width: 100%; min-height: 350px; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; line-height: 1.6; font-size: 1rem; }
 
-        /* 모달 모바일 최적화 */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: flex-end; }
-        .modal-content { 
-            background: white; padding: 30px 20px; border-radius: 20px 20px 0 0; 
-            width: 100%; max-height: 85vh; overflow-y: auto; box-sizing: border-box;
-        }
+        .modal-content { background: white; padding: 30px 20px; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
         
         .btn-main { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; white-space: nowrap; }
         .auto-link { color: var(--accent); font-weight: bold; text-decoration: underline; }
 
-        @media (max-width: 600px) {
-            .logo { font-size: 1.1rem; }
-            .btn-main { padding: 8px 12px; font-size: 0.85rem; }
-        }
+        @media (max-width: 600px) { .logo { font-size: 1.1rem; } .btn-main { padding: 8px 12px; font-size: 0.85rem; } }
     </style>
 </head>
 <body>
@@ -158,11 +144,10 @@
     let categories = ["지식 저장소"];
     const catColors = { "지식 저장소": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
 
-    let offsetX = 0, scale = 1.0;
+    let offsetX = 0, scale = 1.0, isDragging = false;
+    let lastX = 0, lastY = 0, initialPinchDist = 0;
     const canvas = document.getElementById('timeline-canvas');
     const ctx = canvas.getContext('2d');
-
-    let lastTouchX = 0, lastTouchY = 0, initialPinchDist = 0;
 
     async function init() {
         try {
@@ -180,29 +165,38 @@
         container.innerHTML = categories.map(cat => `
             <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
                 <div class="category-header">
-                    <span class="category-title" ondblclick="renameCategory('${cat}')">${cat}</span>
+                    <span class="category-title">${cat}</span>
+                    <button class="edit-cat-btn" onclick="renameCategory('${cat}')">✏️</button>
                 </div>
                 <div class="list-grid">
                     ${allData.filter(d => (d.category || "지식 저장소") === cat)
-                        .map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" ontouchstart="touchStart(event, '${d.title}')" ontouchend="touchEnd(event, '${cat}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}
+                        .map(d => `
+                            <div class="db-card" 
+                                 draggable="true" 
+                                 ondragstart="drag(event, '${d.title}')" 
+                                 onclick="loadDoc('${d.title}')"
+                                 onmousedown="startLongPress(event, '${d.title}', '${cat}')"
+                                 onmouseup="cancelLongPress()"
+                                 ontouchstart="startLongPress(event, '${d.title}', '${cat}')"
+                                 ontouchend="cancelLongPress()">
+                                ${d.title}
+                            </div>`).join('')}
                 </div>
             </div>
         `).join('');
     }
 
-    let touchItem = null;
-    function touchStart(e, title) { touchItem = title; }
-    function touchEnd(e, currentCat) { 
-        if(!touchItem) return;
-        setTimeout(() => {
-            const move = confirm(`'${touchItem}' 항목을 다른 카테고리로 이동할까요?`);
-            if(move) {
-                const targetCat = prompt("이동할 카테고리명을 입력하세요:", currentCat);
-                if(targetCat && categories.includes(targetCat)) moveItem(touchItem, targetCat);
+    // 모바일/PC 통합 롱프레스 (카테고리 이동용)
+    let longPressTimer;
+    function startLongPress(e, title, currentCat) {
+        longPressTimer = setTimeout(() => {
+            const targetCat = prompt(`'${title}' 항목을 이동할 카테고리명을 입력하세요:`, currentCat);
+            if(targetCat && categories.includes(targetCat) && targetCat !== currentCat) {
+                moveItem(title, targetCat);
             }
-            touchItem = null;
-        }, 500);
+        }, 800); // 0.8초간 누르면 팝업 발생
     }
+    function cancelLongPress() { clearTimeout(longPressTimer); }
 
     async function moveItem(title, newCat) {
         const item = allData.find(d => d.title === title);
@@ -217,6 +211,39 @@
             card.classList.toggle('hidden', !card.innerText.toLowerCase().includes(query));
         });
     }
+
+    // --- 마우스 & 터치 통합 타임라인 이동 로직 ---
+    function handleDown(x, y) { isDragging = true; lastX = x; lastY = y; }
+    function handleMove(x, y) {
+        if (!isDragging) return;
+        offsetX += (x - lastX);
+        lastX = x;
+        drawTimeline();
+    }
+    function handleUp() { isDragging = false; }
+
+    canvas.addEventListener('mousedown', e => handleDown(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', handleUp);
+
+    canvas.addEventListener('touchstart', e => {
+        if (e.target === canvas) e.preventDefault();
+        if(e.touches.length === 1) handleDown(e.touches[0].clientX, e.touches[0].clientY);
+        else if(e.touches.length === 2) initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        else if(e.touches.length === 2) {
+            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            scale *= (dist / initialPinchDist);
+            initialPinchDist = dist;
+            drawTimeline();
+        }
+    }, {passive: false});
+    canvas.addEventListener('touchend', handleUp);
+    canvas.addEventListener('wheel', e => { e.preventDefault(); scale *= (e.deltaY > 0 ? 0.9 : 1.1); drawTimeline(); }, {passive:false});
 
     function drawTimeline() {
         if (document.getElementById('timeline-view').style.display !== 'block') return;
@@ -243,56 +270,22 @@
             const xStart = centerX + (startYear - 2000) * (yearWidth / 100);
             const xEnd = centerX + (endYear - 2000) * (yearWidth / 100);
             const width = Math.max(Math.abs(xEnd - xStart), 20);
-
             if (xStart + width < 0 || xStart > canvas.width) return;
 
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
             ctx.fillStyle = isMatch ? "#ffff00" : (catColors[d.category] || "#00a8ff");
             ctx.globalAlpha = 0.8;
             ctx.fillRect(xStart, yPos, width, 35);
-            
             ctx.globalAlpha = 1.0;
             ctx.fillStyle = "white"; ctx.font = "bold 12px Pretendard";
             ctx.fillText(d.title, xStart + 5, yPos - 5);
-            ctx.fillStyle = "#999"; ctx.font = "9px Arial";
-            ctx.fillText(d.year, xStart, yPos + 48);
-
             d._tlPos = { x: xStart, y: yPos, w: width, h: 35 };
             yPos = (yPos + 80 > canvas.height - 100) ? 60 : yPos + 80;
         });
     }
 
-    // --- 수정된 터치 로직 ---
-    canvas.addEventListener('touchstart', e => {
-        if (e.target === canvas) e.preventDefault();
-        if(e.touches.length === 1) {
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        } else if(e.touches.length === 2) {
-            initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        }
-    }, {passive: false});
-
-    canvas.addEventListener('touchmove', e => {
-        e.preventDefault(); 
-        if(e.touches.length === 1) {
-            const moveX = e.touches[0].clientX - lastTouchX;
-            offsetX += moveX;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        } else if(e.touches.length === 2) {
-            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            const zoomDelta = dist / initialPinchDist;
-            scale *= zoomDelta;
-            initialPinchDist = dist;
-        }
-        drawTimeline();
-    }, {passive: false});
-
-    canvas.addEventListener('touchend', () => { initialPinchDist = 0; });
-    // --- 터치 로직 끝 ---
-
     canvas.addEventListener('click', e => {
+        if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left, my = e.clientY - rect.top;
         allData.forEach(d => {
@@ -313,8 +306,8 @@
     async function renameCategory(oldName) {
         const newName = prompt("카테고리 이름을 수정합니다:", oldName);
         if(newName && newName !== oldName) {
-            categories = categories.map(c => c === oldName ? newName : c);
             const targets = allData.filter(d => d.category === oldName);
+            categories = categories.map(c => c === oldName ? newName : c);
             targets.forEach(d => d.category = newName);
             renderHome();
             for (const item of targets) {
