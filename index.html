@@ -59,8 +59,28 @@
         #tl-search { flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 0.85rem; outline: none; }
 
         .year-badge { display: inline-block; background: #e1f5ff; color: #007bbd; padding: 5px 12px; border-radius: 15px; font-weight: 700; margin-bottom: 10px; font-size: 0.85rem; }
-        .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; overflow-x: auto; }
-        #ed-content { width: 100%; min-height: 350px; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; line-height: 1.6; font-size: 1rem; }
+        
+        /* 업그레이드된 툴바 스타일 */
+        .toolbar { 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 10px; 
+            display: flex; flex-wrap: wrap; gap: 8px; border-radius: 8px 8px 0 0; 
+            align-items: center;
+        }
+        .toolbar button, .toolbar select { 
+            padding: 5px 8px; border: 1px solid #ccc; background: white; 
+            border-radius: 4px; cursor: pointer; font-size: 0.85rem; 
+        }
+        .toolbar button:hover { background: #eee; }
+        .toolbar .color-group { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #555; }
+        .toolbar input[type="color"] { width: 25px; height: 25px; border: none; cursor: pointer; padding: 0; }
+
+        #ed-content { 
+            width: 100%; min-height: 400px; padding: 20px; border: 1px solid #ddd; 
+            border-top: none; border-radius: 0 0 8px 8px; background: white; outline: none; 
+            box-sizing: border-box; line-height: 1.6; font-size: 1rem; overflow-y: auto;
+        }
+        #ed-content table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        #ed-content td { border: 1px solid #ccc; padding: 8px; min-width: 50px; }
 
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); align-items: flex-end; justify-content: center; }
         .modal-content { background: white; padding: 30px 20px; border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
@@ -110,13 +130,32 @@
                 <input type="text" id="ed-title" style="padding:12px; border:1px solid #ddd; border-radius:10px; font-size:1rem;" placeholder="제목">
                 <input type="text" id="ed-year" style="padding:12px; border:1px solid #ddd; border-radius:10px; font-size:1rem;" placeholder="연도 (예: 1902~2000)">
             </div>
+            
+            <!-- 툴바 업그레이드 -->
             <div class="toolbar">
-                <button onclick="exec('bold')">B</button>
-                <button onclick="exec('underline')">U</button>
-                <input type="color" onchange="exec('foreColor', this.value)">
-                <input type="color" onchange="exec('hiliteColor', this.value)" value="#ffff00">
+                <button onclick="exec('bold')" title="굵게"><b>B</b></button>
+                <button onclick="exec('underline')" title="밑줄"><u>U</u></button>
+                <select onchange="exec('fontSize', this.value)" title="글꼴 크기">
+                    <option value="2">매우 작게</option>
+                    <option value="3">작게</option>
+                    <option value="4" selected>보통</option>
+                    <option value="5">크게</option>
+                    <option value="6">매우 크게</option>
+                </select>
+                <div class="color-group">
+                    글자<input type="color" onchange="exec('foreColor', this.value)" title="글자 색상">
+                </div>
+                <div class="color-group">
+                    배경<input type="color" onchange="exec('hiliteColor', this.value)" value="#ffffff" title="배경 색상(형광펜)">
+                </div>
+                <button onclick="exec('insertUnorderedList')" title="글머리 기호">• 리스트</button>
+                <button onclick="exec('insertOrderedList')" title="번호 매기기">1. 리스트</button>
+                <button onclick="createTable()" title="표 삽입">📅 표 만들기</button>
             </div>
-            <div id="ed-content" contenteditable="true"></div>
+            
+            <!-- spellcheck="false" 추가하여 빨간 밑줄 제거 -->
+            <div id="ed-content" contenteditable="true" spellcheck="false"></div>
+            
             <div style="margin-top:20px; display:flex; justify-content:space-between;">
                 <button onclick="goHome()" style="background:none; border:none; font-weight:bold; color:#666;">취소</button>
                 <button class="btn-main" id="sv-btn" onclick="save()">지식 저장</button>
@@ -230,7 +269,6 @@
         moveItem(title, newCat);
     }
 
-    // --- 타임라인 인터랙션 수정 부분 ---
     function handleDown(x, y) { 
         isDragging = true; 
         lastX = x; 
@@ -251,16 +289,14 @@
     
     function handleUp() { isDragging = false; }
 
-    // PC 클릭 로직 (수정)
     canvas.addEventListener('click', e => {
-        if (dragDistance > 10) return; // 드래그 중에는 클릭 무시
+        if (dragDistance > 10) return;
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
         checkTimelineClick(mx, my);
     });
 
-    // 모바일 터치 로직 (수정)
     canvas.addEventListener('touchstart', e => {
         if (e.target === canvas) e.preventDefault();
         if(e.touches.length === 1) {
@@ -291,7 +327,6 @@
         });
     }
 
-    // --- 나머지 로직 동일 ---
     canvas.addEventListener('mousedown', e => handleDown(e.clientX, e.clientY));
     window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
     window.addEventListener('mouseup', handleUp);
@@ -418,16 +453,32 @@
         document.getElementById('modal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    function exec(c, v=null) { document.execCommand(c, false, v); }
-    function addCategory() {
-        const name = prompt("새로운 카테고리 이름을 입력하세요:");
-        if(name && !categories.includes(name)) { categories.push(name); renderHome(); }
-    }
     function filterHomeItems() {
         const query = document.getElementById('home-search').value.toLowerCase();
         document.querySelectorAll('.db-card').forEach(card => {
             card.classList.toggle('hidden', !card.innerText.toLowerCase().includes(query));
         });
+    }
+    function addCategory() {
+        const name = prompt("새로운 카테고리 이름을 입력하세요:");
+        if(name && !categories.includes(name)) { categories.push(name); renderHome(); }
+    }
+
+    // --- 업그레이드된 에디터 전용 함수 ---
+    function exec(c, v=null) { document.execCommand(c, false, v); }
+    
+    function createTable() {
+        const rows = prompt("행 개수:", "2");
+        const cols = prompt("열 개수:", "2");
+        if(!rows || !cols) return;
+        let tableHtml = "<table>";
+        for(let i=0; i<rows; i++) {
+            tableHtml += "<tr>";
+            for(let j=0; j<cols; j++) tableHtml += "<td>&nbsp;</td>";
+            tableHtml += "</tr>";
+        }
+        tableHtml += "</table><p>&nbsp;</p>";
+        exec("insertHTML", tableHtml);
     }
 
     window.onload = init;
