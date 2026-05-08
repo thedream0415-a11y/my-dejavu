@@ -144,7 +144,7 @@
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbzdzsPGFn4BWe34LvFOzuuBjgxX8yhvMtkccYQh_uXx3QsS7P9rCkmZvqewm7KpUZ-JtA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzdzsPGFn4BWe34LvFOzuuBjgxX8yhvMtkccYQ_uXx3QsS7P9rCkmZvqewm7KpUZ-JtA/exec";
     let allData = [];
     let categories = ["지식 저장소"];
     const catColors = { "지식 저장소": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
@@ -234,15 +234,17 @@
         if(e.touches.length === 1) {
             startTouchX = e.touches[0].clientX;
             startTouchY = e.touches[0].clientY;
-            handleDown(e.touches[0].clientX, e.touches[0].clientY);
+            handleDown(startTouchX, startTouchY);
         }
         else if(e.touches.length === 2) initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }, {passive: false});
 
     canvas.addEventListener('touchmove', e => {
-        e.preventDefault();
-        if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 1) {
+            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
         else if(e.touches.length === 2) {
+            e.preventDefault();
             const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
             scale *= (dist / initialPinchDist);
             initialPinchDist = dist;
@@ -251,14 +253,24 @@
     }, {passive: false});
 
     canvas.addEventListener('touchend', e => {
-        // 모바일 터치 클릭 판정: 손가락을 뗀 좌표가 시작 좌표와 거의 같으면 클릭으로 인식
         if (e.changedTouches.length === 1) {
             const endX = e.changedTouches[0].clientX;
             const endY = e.changedTouches[0].clientY;
             const dist = Math.hypot(endX - startTouchX, endY - startTouchY);
-            if (dist < 10) { // 10픽셀 미만 이동시 클릭으로 간주
+            
+            // 드래그가 거의 일어나지 않았을 때(탭 했을 때) 클릭 처리
+            if (dist < 8) { 
                 const rect = canvas.getBoundingClientRect();
-                checkTimelineClick(endX - rect.left, endY - rect.top);
+                const clickX = endX - rect.left;
+                const clickY = endY - rect.top;
+                
+                // 타임라인 데이터들을 돌며 클릭 위치 확인
+                allData.forEach(d => {
+                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && 
+                       clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) {
+                        openModal(d);
+                    }
+                });
             }
         }
         handleUp();
@@ -297,7 +309,6 @@
             ctx.fillStyle = isMatch ? "#ffff00" : (catColors[d.category] || "#00a8ff");
             ctx.globalAlpha = 0.8;
             
-            // 그리기
             ctx.beginPath();
             if (ctx.roundRect) ctx.roundRect(xStart, yPos, width, 35, 5);
             else ctx.rect(xStart, yPos, width, 35);
@@ -313,19 +324,20 @@
         });
     }
 
-    function checkTimelineClick(mx, my) {
+    canvas.addEventListener('click', e => {
+        // PC에서의 클릭 처리 (모바일은 touchend에서 처리하므로 중복 방지)
+        if (navigator.maxTouchPoints > 0) return; 
+        
+        if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
         allData.forEach(d => {
             if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) {
                 openModal(d);
             }
         });
-    }
-
-    canvas.addEventListener('click', e => {
-        // 드래그 중에는 클릭 무시 (PC 대응)
-        if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
-        const rect = canvas.getBoundingClientRect();
-        checkTimelineClick(e.clientX - rect.left, e.clientY - rect.top);
     });
 
     async function save() {
