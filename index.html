@@ -29,7 +29,7 @@
         .home-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         #home-search { flex: 1; min-width: 200px; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 1rem; }
         
-        .category-group { background: rgba(0,0,0,0.03); border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 2px dashed transparent; }
+        .category-group { background: rgba(0,0,0,0.03); border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 2px dashed transparent; min-height: 100px; }
         .category-group.drag-over { border-color: var(--accent); background: rgba(0,168,255,0.08); }
         .category-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
         .category-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
@@ -41,6 +41,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); 
             font-weight: 600; font-size: 0.95rem; user-select: none; cursor: pointer;
         }
+        .db-card.hidden { display: none; }
 
         #timeline-view { 
             display: none; height: calc(100vh - 60px); width: 100%; background: #121212; 
@@ -71,8 +72,6 @@
         
         .btn-main { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; white-space: nowrap; }
         .auto-link { color: var(--accent); font-weight: bold; text-decoration: underline; }
-
-        @media (max-width: 600px) { .logo { font-size: 1.1rem; } .btn-main { padding: 8px 12px; font-size: 0.85rem; } }
     </style>
 </head>
 <body>
@@ -91,9 +90,10 @@
             <input type="text" id="home-search" placeholder="지식 제목 검색..." oninput="filterHomeItems()">
             <button class="btn-main" style="background:#2c3e50;" onclick="addCategory()">+ 카테고리</button>
         </div>
-        <div id="category-container"></div>
+        <div id="category-container">지식을 불러오는 중...</div>
     </section>
 
+    <!-- 다른 섹션들은 생략하지 않고 모두 유지 -->
     <section id="doc-view" class="section">
         <div style="background:white; padding:25px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
             <div id="dv-year-area"></div>
@@ -144,7 +144,7 @@
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbzdzsPGFn4BWe34LvFOzuuBjgxX8yhvMtkccYQ_uXx3QsS7P9rCkmZvqewm7KpUZ-JtA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzdzsPGFn4BWe34LvFOzuuBjgxX8yhvMtkccYQh_uXx3QsS7P9rCkmZvqewm7KpUZ-JtA/exec";
     let allData = [];
     let categories = ["지식 저장소"];
     const catColors = { "지식 저장소": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
@@ -162,11 +162,18 @@
             const savedCats = [...new Set(allData.map(d => d.category).filter(c => c))];
             if(savedCats.length > 0) categories = savedCats;
             renderHome();
-        } catch(e) { console.error("Load Error", e); }
+        } catch(e) { 
+            console.error("Load Error", e);
+            document.getElementById('category-container').innerText = "데이터를 불러오는 중 오류가 발생했습니다.";
+        }
     }
 
     function renderHome() {
         const container = document.getElementById('category-container');
+        if (allData.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:#888;'>등록된 지식이 없습니다. [+ 메모]를 눌러 추가해 보세요!</p>";
+            return;
+        }
         container.innerHTML = categories.map(cat => `
             <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
                 <div class="category-header">
@@ -191,6 +198,7 @@
         `).join('');
     }
 
+    // --- 이하 로직 동일 (터치 클릭 보정 포함) ---
     let longPressTimer;
     function startLongPress(e, title, currentCat) {
         longPressTimer = setTimeout(() => {
@@ -240,9 +248,7 @@
     }, {passive: false});
 
     canvas.addEventListener('touchmove', e => {
-        if(e.touches.length === 1) {
-            handleMove(e.touches[0].clientX, e.touches[0].clientY);
-        }
+        if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
         else if(e.touches.length === 2) {
             e.preventDefault();
             const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -257,19 +263,12 @@
             const endX = e.changedTouches[0].clientX;
             const endY = e.changedTouches[0].clientY;
             const dist = Math.hypot(endX - startTouchX, endY - startTouchY);
-            
-            // 드래그가 거의 일어나지 않았을 때(탭 했을 때) 클릭 처리
             if (dist < 8) { 
                 const rect = canvas.getBoundingClientRect();
                 const clickX = endX - rect.left;
                 const clickY = endY - rect.top;
-                
-                // 타임라인 데이터들을 돌며 클릭 위치 확인
                 allData.forEach(d => {
-                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && 
-                       clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) {
-                        openModal(d);
-                    }
+                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) openModal(d);
                 });
             }
         }
@@ -308,35 +307,24 @@
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
             ctx.fillStyle = isMatch ? "#ffff00" : (catColors[d.category] || "#00a8ff");
             ctx.globalAlpha = 0.8;
-            
             ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(xStart, yPos, width, 35, 5);
-            else ctx.rect(xStart, yPos, width, 35);
+            if (ctx.roundRect) ctx.roundRect(xStart, yPos, width, 35, 5); else ctx.rect(xStart, yPos, width, 35);
             ctx.fill();
-            
             ctx.globalAlpha = 1.0;
             ctx.fillStyle = isMatch ? "#000" : "white"; ctx.font = "bold 12px Pretendard";
-            const displayLabel = `${d.title} (${d.year})`;
-            ctx.fillText(displayLabel, xStart + 5, yPos - 5);
-            
+            ctx.fillText(`${d.title} (${d.year})`, xStart + 5, yPos - 5);
             d._tlPos = { x: xStart, y: yPos, w: width, h: 35 };
             yPos = (yPos + 80 > canvas.height - 120) ? 60 : yPos + 80;
         });
     }
 
     canvas.addEventListener('click', e => {
-        // PC에서의 클릭 처리 (모바일은 touchend에서 처리하므로 중복 방지)
         if (navigator.maxTouchPoints > 0) return; 
-        
         if(isDragging && Math.abs(e.clientX - lastX) > 5) return;
         const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
         allData.forEach(d => {
-            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) {
-                openModal(d);
-            }
+            if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) openModal(d);
         });
     });
 
