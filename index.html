@@ -60,7 +60,6 @@
 
         .year-badge { display: inline-block; background: #e1f5ff; color: #007bbd; padding: 5px 12px; border-radius: 15px; font-weight: 700; margin-bottom: 10px; font-size: 0.85rem; }
         
-        /* 업그레이드된 툴바 스타일 */
         .toolbar { 
             background: #f8f9fa; border: 1px solid #ddd; padding: 10px; 
             display: flex; flex-wrap: wrap; gap: 8px; border-radius: 8px 8px 0 0; 
@@ -131,7 +130,6 @@
                 <input type="text" id="ed-year" style="padding:12px; border:1px solid #ddd; border-radius:10px; font-size:1rem;" placeholder="연도 (예: 1902~2000)">
             </div>
             
-            <!-- 툴바 업그레이드 -->
             <div class="toolbar">
                 <button onclick="exec('bold')" title="굵게"><b>B</b></button>
                 <button onclick="exec('underline')" title="밑줄"><u>U</u></button>
@@ -153,7 +151,6 @@
                 <button onclick="createTable()" title="표 삽입">📅 표 만들기</button>
             </div>
             
-            <!-- spellcheck="false" 추가하여 빨간 밑줄 제거 -->
             <div id="ed-content" contenteditable="true" spellcheck="false"></div>
             
             <div style="margin-top:20px; display:flex; justify-content:space-between;">
@@ -184,8 +181,9 @@
 <script>
     const API = "https://script.google.com/macros/s/AKfycbzdzsPGFn4BWe34LvFOzuuBjgxX8yhvMtkccYQh_uXx3QsS7P9rCkmZvqewm7KpUZ-JtA/exec";
     let allData = [];
-    let categories = ["지식 저장소"];
-    const catColors = { "지식 저장소": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
+    // '지식 저장소' -> '미분류'로 변경
+    let categories = ["미분류"];
+    const catColors = { "미분류": "#1a2a6c", "인물": "#00a8ff", "사건": "#e84118", "학습": "#4cd137", "기타": "#8c7ae6" };
 
     let offsetX = 0, scale = 1.0, isDragging = false;
     let lastX = 0, lastY = 0, startTouchX = 0, startTouchY = 0, initialPinchDist = 0;
@@ -198,8 +196,14 @@
             const res = await fetch(`${API}?list=all`);
             const data = await res.json();
             allData = data.fullData || [];
+            
+            // 불러온 데이터 중 카테고리값이 '지식 저장소'인 것이 있다면 '미분류'로 치환 (하위 호환성)
+            allData.forEach(d => { if(d.category === "지식 저장소") d.category = "미분류"; });
+
             const savedCats = [...new Set(allData.map(d => d.category).filter(c => c))];
             if(savedCats.length > 0) categories = savedCats;
+            if(!categories.includes("미분류")) categories.unshift("미분류");
+            
             renderHome();
         } catch(e) { 
             console.error("Load Error", e);
@@ -215,7 +219,7 @@
         }
         
         const html = categories.map(cat => {
-            const items = allData.filter(d => (d.category || "지식 저장소") === cat);
+            const items = allData.filter(d => (d.category || "미분류") === cat);
             return `
                 <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
                     <div class="category-header">
@@ -388,11 +392,23 @@
         const year = document.getElementById('ed-year').value.trim();
         const content = document.getElementById('ed-content').innerHTML;
         if(!title) return alert("제목을 입력하세요.");
+        
         document.getElementById('sv-btn').innerText = "전송 중...";
-        const newData = { title, year, content, category: "지식 저장소" };
+        
         const existingIdx = allData.findIndex(d => d.title === title);
+        let targetCategory = "미분류"; // 기본값
+        
+        // --- 카테고리 고정 로직 ---
+        if(existingIdx > -1) {
+            // 이미 존재하는 데이터라면 기존 카테고리를 유지함
+            targetCategory = allData[existingIdx].category || "미분류";
+        }
+
+        const newData = { title, year, content, category: targetCategory };
+        
         if(existingIdx > -1) allData[existingIdx] = newData;
         else allData.push(newData);
+        
         fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
         goHome();
     }
@@ -464,17 +480,16 @@
         if(name && !categories.includes(name)) { categories.push(name); renderHome(); }
     }
 
-    // --- 업그레이드된 에디터 전용 함수 ---
     function exec(c, v=null) { document.execCommand(c, false, v); }
     
     function createTable() {
         const rows = prompt("행 개수:", "2");
         const cols = prompt("열 개수:", "2");
         if(!rows || !cols) return;
-        let tableHtml = "<table>";
+        let tableHtml = "<table style='border-collapse: collapse; width: 100%;'>";
         for(let i=0; i<rows; i++) {
             tableHtml += "<tr>";
-            for(let j=0; j<cols; j++) tableHtml += "<td>&nbsp;</td>";
+            for(let j=0; j<cols; j++) tableHtml += "<td style='border: 1px solid #ccc; padding: 8px;'>&nbsp;</td>";
             tableHtml += "</tr>";
         }
         tableHtml += "</table><p>&nbsp;</p>";
