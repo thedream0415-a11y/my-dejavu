@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>데자뷰 - 통합 워크스페이스 (v2.2 기능 복구)</title>
+    <title>데자뷰 - 통합 워크스페이스 (v2.3.1 타임라인 개선)</title>
     <style>
         :root { --bg: #f4f7f6; --primary: #1a2a6c; --accent: #00a8ff; --card: #ffffff; --text: #333; --border: #e0e0e0; --sermon: #27ae60; }
         body.dark-mode { --bg: #121212; --primary: #0a0e27; --accent: #00a8ff; --card: #1e1e1e; --text: #e0e0e0; --border: #333; }
@@ -162,7 +162,6 @@
     let currentMainMode = 'dejavu', sortState = { field: 'date', asc: false };
     const catColors = { "미분류": "#1a2a6c", "설교노트": "#27ae60" };
 
-    // 날짜 형식 변환기 (2026-04-28 형태)
     function formatDate(rawDate) {
         if (!rawDate) return "-";
         const d = new Date(rawDate);
@@ -173,7 +172,6 @@
         return `${year}-${month}-${day}`;
     }
 
-    // 주제(태그) 색상 생성기
     function getTagColor(text) {
         let hash = 0;
         for (let i = 0; i < text.length; i++) { hash = text.charCodeAt(i) + ((hash << 5) - hash); }
@@ -237,10 +235,10 @@
         `).join('');
     }
 
-    // 드래그 앤 드롭 & 카테고리 기능
     function drag(e, title) { e.dataTransfer.setData("text", title); }
     function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
     function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+    
     function drop(e, newCat) {
         e.preventDefault();
         e.currentTarget.classList.remove('drag-over');
@@ -249,13 +247,12 @@
         if(item && item.category !== newCat) {
             item.category = newCat;
             renderHome();
-            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title, category: newCat }) });
+            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(item) });
         }
     }
     function addCategory() { const name = prompt("새 카테고리 이름:"); if(name && !categories.includes(name)) { categories.push(name); renderHome(); } }
     function renameCategory(old) { const name = prompt("변경할 카테고리 이름:", old); if(name && name !== old) { categories = categories.map(c => c === old ? name : c); allData.forEach(d => { if(d.category === old) d.category = name; }); renderHome(); } }
 
-    // 검색 기능
     function filterHomeItems() {
         const q = document.getElementById('home-search').value.toLowerCase();
         document.querySelectorAll('#category-container .db-card').forEach(c => {
@@ -269,11 +266,12 @@
         });
     }
 
-    // 타임라인 확대/축소 및 인터랙션 (기존 기능 유지)
     const canvas = document.getElementById('timeline-canvas'); const ctx = canvas.getContext('2d');
     let offsetX = 0, scale = 1.0, isDragging = false, lastX = 0;
     
     function showTimeline() { canvas.width = window.innerWidth; canvas.height = window.innerHeight-60; document.getElementById('timeline-view').style.display='block'; drawTimeline(); }
+    
+    // 타임라인 그리기 함수 (제목과 연도가 함께 표시되도록 수정됨)
     function drawTimeline() {
         ctx.clearRect(0,0,canvas.width,canvas.height);
         const centerX = canvas.width/2 + offsetX; const yearWidth = 100 * scale;
@@ -288,9 +286,19 @@
             if(!d.year) return; const match = d.year.match(/-?\d+/); if(!match) return;
             const x = centerX + (parseInt(match[0])-2000)*(yearWidth/100);
             ctx.fillStyle = catColors[d.category] || "#1a2a6c";
-            if(ctx.roundRect) ctx.roundRect(x, yPos, 140, 40, 5); else ctx.rect(x, yPos, 140, 40);
-            ctx.fill(); ctx.fillStyle="white"; ctx.fillText(d.title, x+10, yPos+25);
-            d._tlPos = {x, y: yPos, w:140, h:40}; yPos = (yPos+60 > canvas.height-100) ? 60 : yPos+60;
+            
+            // 박스 크기 자동 조절 (텍스트 길이에 따라)
+            const displayText = `${d.title} (${d.year})`;
+            const boxWidth = Math.max(160, ctx.measureText(displayText).width + 20);
+
+            if(ctx.roundRect) ctx.roundRect(x, yPos, boxWidth, 40, 5); else ctx.rect(x, yPos, boxWidth, 40);
+            ctx.fill(); 
+            ctx.fillStyle="white"; 
+            ctx.font = "bold 12px Pretendard";
+            ctx.fillText(displayText, x+10, yPos+25);
+            
+            d._tlPos = {x, y: yPos, w:boxWidth, h:40}; 
+            yPos = (yPos+60 > canvas.height-100) ? 60 : yPos+60;
         });
     }
 
@@ -303,7 +311,6 @@
         allData.forEach(d => { if(d._tlPos && mx>=d._tlPos.x && mx<=d._tlPos.x+d._tlPos.w && my>=d._tlPos.y && my<=d._tlPos.y+d._tlPos.h) openModal(d); });
     });
 
-    // 화면 전환 및 기타 유틸
     async function loadDoc(title, isBack = false) {
         const item = allData.find(d => d.title === title);
         if(!item) return;
@@ -333,9 +340,17 @@
     async function save() {
         const title = document.getElementById('ed-title').value; if(!title) return;
         const isSermon = document.getElementById('ed-isSermon').checked;
+        const existingItem = allData.find(d => d.title === title);
+        let currentCategory = "미분류";
+        if (isSermon) {
+            currentCategory = "설교노트";
+        } else if (existingItem) {
+            currentCategory = existingItem.category;
+        }
+
         const newData = {
             title, content: document.getElementById('ed-content').innerHTML,
-            category: isSermon ? "설교노트" : "미분류",
+            category: currentCategory,
             date: isSermon ? document.getElementById('ed-date').value : "",
             preacher: isSermon ? document.getElementById('ed-preacher').value : "",
             scripture: isSermon ? document.getElementById('ed-scripture').value : "",
@@ -343,11 +358,12 @@
             year: !isSermon ? document.getElementById('ed-year').value : "",
             isSermon: isSermon
         };
+
         const idx = allData.findIndex(d => d.title === title);
         if(idx > -1) allData[idx] = newData; else allData.push(newData);
-        await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
-        init(); // 저장 후 데이터 새로고침
+        
         goHome();
+        fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
     }
 
     function switchMainMode(m) { currentMainMode=m; document.getElementById('mode-dejavu').className=m==='dejavu'?'mode-btn active':'mode-btn'; document.getElementById('mode-sermon').className=m==='sermon'?'mode-btn active':'mode-btn'; goHome(); }
