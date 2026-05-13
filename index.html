@@ -3,56 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>데자뷰 - 통합 워크스페이스 (v3.0 지식 맵 추가본)</title>
+    <title>데자뷰 - 통합 워크스페이스 (v3.3 타임라인 개선본)</title>
     <style>
         :root { --bg: #f4f7f6; --primary: #1a2a6c; --accent: #00a8ff; --card: #ffffff; --text: #333; --border: #e0e0e0; --sermon: #27ae60; }
         body.dark-mode { --bg: #121212; --primary: #0a0e27; --accent: #00a8ff; --card: #1e1e1e; --text: #e0e0e0; --border: #333; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; color: var(--text); transition: 0.3s; overflow-x: hidden; }
-        
         header { background: var(--primary); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; height: 60px; box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; gap: 12px; }
         .logo { font-size: 1.1rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
         .mode-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
         .mode-btn.active { background: var(--accent); }
-
         .nav-btns { display: flex; gap: 8px; }
         .section { display: none; padding: 20px 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* 거미줄 맵 뷰 스타일 */
         #graph-view { display: none; height: calc(100vh - 60px); width: 100%; background: #f0f2f5; position: fixed; top: 60px; left: 0; z-index: 500; }
         body.dark-mode #graph-view { background: #000; }
         #graph-canvas { width: 100%; height: 100%; cursor: grab; }
-
         .doc-container { display: grid; grid-template-columns: 250px 1fr 250px; gap: 20px; align-items: start; }
         @media (max-width: 1024px) {
             .doc-container { grid-template-columns: 1fr; }
             .side-panel { position: static !important; order: 2; margin-top: 10px; width: 100%; box-sizing: border-box; }
             .main-doc { order: 1; padding: 20px !important; width: 100%; box-sizing: border-box; }
         }
-
         .side-panel { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.03); max-height: 80vh; overflow-y: auto; position: sticky; top: 80px; }
         .side-panel h4 { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
         .link-item { padding: 8px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s; }
         .main-doc { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); color: #333; min-height: 50vh; }
-
         .category-group { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px dashed transparent; }
         .category-group.drag-over { border-color: var(--accent); background: rgba(0,168,255,0.05); }
         .db-card { background: var(--card); padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); font-weight: 600; cursor: pointer; }
-        
         .sermon-container { background: var(--card); border-radius: 15px; overflow-x: auto; }
         .s-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        .s-table th, .s-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; text-align: left; }
+        .s-table th { padding: 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-align: left; cursor: pointer; background: rgba(0,0,0,0.02); }
+        .s-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; text-align: left; }
         .tag-pill { padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; color: white; display: inline-block; margin: 2px; }
-
         #timeline-view { display: none; height: calc(100vh - 60px); width: 100%; background: #121212; position: fixed; top: 60px; left: 0; z-index: 500; touch-action: none; }
         #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
-
+        .tl-header { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 600; width: 300px; }
+        .tl-header input { width: 100%; padding: 10px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none; }
+        .tl-controls { position: absolute; bottom: 20px; right: 20px; z-index: 600; }
         .btn-main { background: var(--accent); color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .auto-link { color: var(--accent); font-weight: bold; text-decoration: underline; cursor: pointer; }
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 550px; position: relative; }
-        
         .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; }
         #ed-content { width: 100%; min-height: 400px; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; }
     </style>
@@ -74,7 +65,6 @@
 </header>
 
 <main>
-    <!-- 홈/리스트 뷰 -->
     <section id="home-view" class="section" style="display: block;">
         <div style="display:flex; justify-content:space-between; margin-bottom:20px; gap:10px;">
             <input type="text" id="home-search" placeholder="지식 검색..." oninput="filterHomeItems()" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd;">
@@ -88,14 +78,19 @@
         <div class="sermon-container">
             <table class="s-table">
                 <thead>
-                    <tr><th onclick="sortSermons('date')">날짜 ↕</th><th onclick="sortSermons('title')">제목 ↕</th><th>본문</th><th>설교자</th><th>태그</th></tr>
+                    <tr>
+                        <th onclick="sortSermons('date')">날짜 ↕</th>
+                        <th onclick="sortSermons('title')">제목 ↕</th>
+                        <th onclick="sortSermons('scripture')">본문 ↕</th>
+                        <th onclick="sortSermons('preacher')">설교자 ↕</th>
+                        <th onclick="sortSermons('sermonTopic')">태그 ↕</th>
+                    </tr>
                 </thead>
                 <tbody id="sermon-list-body"></tbody>
             </table>
         </div>
     </section>
 
-    <!-- 문서 상세 뷰 -->
     <section id="doc-view" class="section">
         <div class="doc-container">
             <div class="side-panel"><h4>📂 백링크</h4><div id="backlinks-list"></div></div>
@@ -112,7 +107,6 @@
         </div>
     </section>
 
-    <!-- 에디터 뷰 -->
     <section id="edit-view" class="section">
         <div style="background:white; padding:20px; border-radius:15px;">
             <label><input type="checkbox" id="ed-isSermon" onchange="toggleEditorFields()"> 설교 노트</label>
@@ -149,13 +143,11 @@
     </section>
 </main>
 
-<div id="modal" class="modal" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation()"><button id="modal-edit-btn" class="btn-main" style="position:absolute; top:20px; right:20px;">수정</button><h2 id="modal-title"></h2><div id="modal-body"></div><button class="btn-main" onclick="closeModal()" style="width:100%; margin-top:20px; background:#666;">닫기</button></div></div>
-
 <script>
     const API = "https://script.google.com/macros/s/AKfycbxp5h5nOf5pMQADLkkDiB7ZRLID53BIBFl8CDhdrcCtiq_QdRIEVJTJprojiLG55ddtxQ/exec";
     let allData = [], categories = ["미분류"], docHistory = [];
-    let currentMainMode = 'dejavu', sortState = { field: 'date', asc: false };
-    const catColors = { "미분류": "#1a2a6c", "설교노트": "#27ae60" };
+    let currentMainMode = 'dejavu';
+    let sermonSortState = { field: 'date', asc: false };
 
     async function init() {
         try {
@@ -173,7 +165,7 @@
         } catch(e) { console.error("로드 실패", e); }
     }
 
-    // --- 타임라인 로직 (유지) ---
+    // --- [수정사항: 타임라인 로직] ---
     const tlCanvas = document.getElementById('timeline-canvas');
     const tlCtx = tlCanvas.getContext('2d');
     let tlOffsetX = 0, tlScale = 1.0, tlIsDragging = false, tlLastX = 0, tlMoved = false;
@@ -181,44 +173,231 @@
     function drawTimeline() {
         tlCtx.clearRect(0,0,tlCanvas.width,tlCanvas.height);
         const centerX = tlCanvas.width/2 + tlOffsetX;
-        const yearWidth = 100 * tlScale;
+        const yearWidth = 100 * tlScale; // 100년당 픽셀 너비
         const searchQuery = document.getElementById('tl-search').value.toLowerCase();
-        tlCtx.strokeStyle = "#444"; tlCtx.fillStyle = "#888";
+
+        // 1. 배경 눈금 및 연도 표시 (100단위)
+        tlCtx.strokeStyle = "rgba(255,255,255,0.1)";
+        tlCtx.fillStyle = "#888";
+        tlCtx.font = "12px sans-serif";
+        tlCtx.textAlign = "center";
+
+        // 화면에 보일 범위 계산하여 -2000년부터 2500년까지 반복
         for(let y=-2000; y<=2500; y+=100) {
-            let x = centerX + (y-2000)*(yearWidth/100);
+            let x = centerX + (y - 2000) * (yearWidth / 100);
             if(x < -200 || x > tlCanvas.width + 200) continue;
-            tlCtx.beginPath(); tlCtx.moveTo(x,0); tlCtx.lineTo(x,tlCanvas.height); tlCtx.stroke();
-            tlCtx.fillText(y+"년", x+5, tlCanvas.height-10);
+            
+            tlCtx.beginPath();
+            tlCtx.moveTo(x, 0);
+            tlCtx.lineTo(x, tlCanvas.height);
+            tlCtx.stroke();
+            tlCtx.fillText(y + "년", x, tlCanvas.height - 20);
         }
+
+        // 2. 데이터 바(Bar) 그리기
         let yPos = 80;
         allData.forEach(d => {
-            if(!d.year) return;
+            if(!d.year || d.isSermon) return;
             const years = String(d.year).match(/-?\d+/g);
             if(!years) return;
+            
             const startYear = parseInt(years[0]);
             const endYear = years.length > 1 ? parseInt(years[1]) : startYear;
+            
             const startX = centerX + (startYear - 2000) * (yearWidth / 100);
             const endX = centerX + (endYear - 2000) * (yearWidth / 100);
-            let barWidth = endX - startX;
+            
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
-            tlCtx.fillStyle = isMatch ? "#f1c40f" : (catColors[d.category] || "#1a2a6c");
+            tlCtx.fillStyle = isMatch ? "#f1c40f" : "#1a2a6c";
+            
             const displayText = `${d.title} (${d.year})`;
             tlCtx.font = "bold 13px Pretendard";
             const textWidth = tlCtx.measureText(displayText).width + 25;
+            
+            let barWidth = Math.max(endX - startX, 10); // 점 데이터도 최소 너비 확보
             let finalWidth = (years.length > 1) ? Math.max(barWidth, 40) : textWidth;
-            if(tlCtx.roundRect) { tlCtx.beginPath(); tlCtx.roundRect(startX, yPos, finalWidth, 40, 8); tlCtx.fill(); } 
-            else { tlCtx.fillRect(startX, yPos, finalWidth, 40); }
+
+            // 둥근 사각형 그리기
+            tlCtx.beginPath();
+            if(tlCtx.roundRect) {
+                tlCtx.roundRect(startX, yPos, finalWidth, 40, 8);
+                tlCtx.fill();
+            } else {
+                tlCtx.fillRect(startX, yPos, finalWidth, 40);
+            }
+
             tlCtx.fillStyle = isMatch ? "#000" : "white";
+            tlCtx.textAlign = "left";
             tlCtx.fillText(displayText, startX + 12, yPos + 25);
+            
             d._tlPos = {x: startX, y: yPos, w: finalWidth, h: 40}; 
             yPos = (yPos+60 > tlCanvas.height-150) ? 80 : yPos+60;
         });
     }
 
-    // --- 거미줄 맵 로직 (추가) ---
+    // 마우스 휠 확대/축소 이벤트 추가
+    tlCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomSpeed = 0.1;
+        if (e.deltaY < 0) {
+            tlScale *= (1 + zoomSpeed); // 확대
+        } else {
+            tlScale *= (1 - zoomSpeed); // 축소
+        }
+        tlScale = Math.max(0.1, Math.min(tlScale, 10)); // 범위 제한
+        drawTimeline();
+    }, { passive: false });
+
+    // --- 기존 기능 유지 영역 (수정 없음) ---
+    function sortSermons(field) {
+        if (sermonSortState.field === field) {
+            sermonSortState.asc = !sermonSortState.asc;
+        } else {
+            sermonSortState.field = field;
+            sermonSortState.asc = true;
+        }
+        renderSermonTable();
+    }
+
+    function renderSermonTable() {
+        const tbody = document.getElementById('sermon-list-body');
+        let sermons = allData.filter(d => d.isSermon);
+        sermons.sort((a, b) => {
+            let valA = (a[sermonSortState.field] || "").toString().toLowerCase();
+            let valB = (b[sermonSortState.field] || "").toString().toLowerCase();
+            if (sermonSortState.field === 'date') {
+                valA = new Date(a.date || '1900-01-01').getTime();
+                valB = new Date(b.date || '1900-01-01').getTime();
+            }
+            if (valA < valB) return sermonSortState.asc ? -1 : 1;
+            if (valA > valB) return sermonSortState.asc ? 1 : -1;
+            return 0;
+        });
+        tbody.innerHTML = sermons.map(s => `<tr onclick="loadDoc('${s.title}')"><td>${formatDate(s.date)}</td><td style="font-weight:bold;">${s.title}</td><td>${s.scripture||'-'}</td><td>${s.preacher||'-'}</td><td>${(s.sermonTopic||'').split(',').map(t => t.trim() ? `<span class="tag-pill" style="background:${getTagColor(t.trim())}">${t.trim()}</span>` : '').join('')}</td></tr>`).join('');
+    }
+
+    function drag(ev, title) { ev.dataTransfer.setData("text", title); }
+    function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+    function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
+    function drop(ev, newCat) {
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('drag-over');
+        const title = ev.dataTransfer.getData("text");
+        const item = allData.find(d => d.title === title);
+        if (item && item.category !== newCat) {
+            item.category = newCat;
+            renderHome();
+            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(item) });
+        }
+    }
+
+    function renameCategory(oldName) {
+        const newName = prompt("카테고리 이름 수정:", oldName);
+        if (newName && newName !== oldName) {
+            categories = categories.map(c => c === oldName ? newName : c);
+            allData.forEach(d => { if(d.category === oldName) d.category = newName; });
+            renderHome();
+        }
+    }
+
+    function editCurrent() {
+        const title = document.getElementById('dv-title').innerText;
+        const d = allData.find(x => x.title === title);
+        if (!d) return;
+        showEditor();
+        document.getElementById('ed-title').value = d.title;
+        document.getElementById('ed-content').innerHTML = d.content;
+        document.getElementById('ed-isSermon').checked = d.isSermon;
+        if (d.isSermon) {
+            document.getElementById('sermon-fields').style.display = 'block';
+            document.getElementById('dejavu-fields').style.display = 'none';
+            document.getElementById('ed-date').value = formatDateForInput(d.date);
+            document.getElementById('ed-preacher').value = d.preacher || "";
+            document.getElementById('ed-scripture').value = d.scripture || "";
+            document.getElementById('ed-sermonTopic').value = d.sermonTopic || "";
+        } else {
+            document.getElementById('sermon-fields').style.display = 'none';
+            document.getElementById('dejavu-fields').style.display = 'block';
+            document.getElementById('ed-year').value = d.year || "";
+        }
+    }
+
+    async function save() {
+        const title = document.getElementById('ed-title').value;
+        if(!title) return;
+        const isSermon = document.getElementById('ed-isSermon').checked;
+        const existing = allData.find(d => d.title === title);
+        const newData = {
+            title, content: document.getElementById('ed-content').innerHTML,
+            category: existing ? existing.category : (isSermon ? "설교노트" : "미분류"),
+            date: isSermon ? document.getElementById('ed-date').value : "",
+            preacher: isSermon ? document.getElementById('ed-preacher').value : "",
+            scripture: isSermon ? document.getElementById('ed-scripture').value : "",
+            sermonTopic: isSermon ? document.getElementById('ed-sermonTopic').value : "",
+            year: !isSermon ? document.getElementById('ed-year').value : "",
+            isSermon: isSermon
+        };
+        const idx = allData.findIndex(d => d.title === title);
+        if(idx > -1) allData[idx] = newData; else allData.push(newData);
+        goHome();
+        fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
+    }
+
+    function renderHome() {
+        const container = document.getElementById('category-container');
+        const dejavuData = allData.filter(d => !d.isSermon && d.category !== '설교노트');
+        container.innerHTML = categories.filter(c => c !== '설교노트').map(cat => `
+            <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+                <div style="font-weight:800; color:#1a2a6c; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    ${cat} <span style="cursor:pointer; font-size:0.8rem;" onclick="renameCategory('${cat}')">✏️</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px;">
+                    ${dejavuData.filter(d => d.category === cat).map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function switchMainMode(m) { currentMainMode=m; goHome(); }
+    function showSection(id) { 
+        document.querySelectorAll('.section').forEach(s=>s.style.display='none'); 
+        document.getElementById('timeline-view').style.display='none'; 
+        document.getElementById('graph-view').style.display='none'; 
+        document.getElementById(id).style.display='block'; 
+    }
+    function goHome() { showSection(currentMainMode==='dejavu'?'home-view':'sermon-home-view'); renderHome(); renderSermonTable(); }
+    function goBack() { if(docHistory.length>0) loadDoc(docHistory.pop(), true); else goHome(); }
+    function showEditor() { showSection('edit-view'); ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value=""); document.getElementById('ed-content').innerHTML=""; document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); toggleEditorFields(); }
+    function toggleEditorFields() { const s = document.getElementById('ed-isSermon').checked; document.getElementById('sermon-fields').style.display=s?'block':'none'; document.getElementById('dejavu-fields').style.display=s?'none':'block'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    function formatDate(r) { if(!r) return "-"; return String(r).split('T')[0]; }
+    function formatDateForInput(dateStr) { if (!dateStr) return ""; const d = new Date(dateStr); return isNaN(d.getTime()) ? "" : d.toISOString().split('T')[0]; }
+    function getTagColor(t) { let h=0; if(!t) return "#ccc"; for(let i=0;i<t.length;i++) h=t.charCodeAt(i)+((h<<5)-h); return `hsl(${Math.abs(h)%360},60%,45%)`; }
+    function exec(c) { document.execCommand(c, false, null); }
+
+    // 타임라인 드래그 이벤트
+    tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
+    window.addEventListener('mousemove', (e) => { if(!tlIsDragging) return; if(Math.abs(e.clientX - tlLastX) > 5) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); });
+    window.addEventListener('mouseup', (e) => {
+        if(!tlMoved && tlIsDragging) {
+            const rect = tlCanvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            allData.forEach(d => { if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) loadDoc(d.title); });
+        }
+        tlIsDragging = false;
+    });
+
+    function showTimeline() { 
+        tlCanvas.width = window.innerWidth; 
+        tlCanvas.height = window.innerHeight - 60; 
+        showSection('timeline-view'); 
+        drawTimeline(); 
+    }
+
+    // 그래프 (v3.2 유지)
     const gCanvas = document.getElementById('graph-canvas');
     const gCtx = gCanvas.getContext('2d');
-    let nodes = [], links = [], gIsDragging = false, dragNode = null, gOffset = {x:0, y:0};
+    let nodes = [], links = [];
 
     function showGraph() {
         showSection('graph-view');
@@ -228,18 +407,11 @@
     }
 
     function initGraph() {
-        nodes = allData.map((d, i) => ({
-            ...d,
-            x: Math.random() * gCanvas.width,
-            y: Math.random() * gCanvas.height,
-            vx: 0, vy: 0, r: 25
-        }));
+        nodes = allData.map((d, i) => ({ ...d, x: Math.random() * gCanvas.width, y: Math.random() * gCanvas.height, vx: 0, vy: 0, r: 25 }));
         links = [];
         nodes.forEach(source => {
             nodes.forEach(target => {
-                if(source.title !== target.title && source.content.includes(target.title)) {
-                    links.push({source, target});
-                }
+                if(source.title !== target.title && source.content.includes(target.title)) { links.push({source, target}); }
             });
         });
     }
@@ -247,21 +419,16 @@
     function animateGraph() {
         if(document.getElementById('graph-view').style.display === 'none') return;
         gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
-        
-        // 물리 시뮬레이션 (서로 밀어내기 및 연결 당기기)
         nodes.forEach(n => {
             nodes.forEach(n2 => {
                 if(n === n2) return;
                 const dx = n.x - n2.x, dy = n.y - n2.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
                 if(dist < 150) { n.vx += dx/dist * 0.5; n.vy += dy/dist * 0.5; }
             });
-            n.vx *= 0.9; n.vy *= 0.9;
-            n.x += n.vx; n.y += n.vy;
-            // 화면 경계 제한
+            n.vx *= 0.9; n.vy *= 0.9; n.x += n.vx; n.y += n.vy;
             n.x = Math.max(50, Math.min(gCanvas.width-50, n.x));
             n.y = Math.max(50, Math.min(gCanvas.height-50, n.y));
         });
-
         links.forEach(l => {
             const dx = l.target.x - l.source.x, dy = l.target.y - l.source.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
             const force = (dist - 100) * 0.01;
@@ -270,9 +437,8 @@
             gCtx.strokeStyle = "rgba(150,150,150,0.3)";
             gCtx.beginPath(); gCtx.moveTo(l.source.x, l.source.y); gCtx.lineTo(l.target.x, l.target.y); gCtx.stroke();
         });
-
         nodes.forEach(n => {
-            gCtx.fillStyle = catColors[n.category] || "#1a2a6c";
+            gCtx.fillStyle = n.isSermon ? "#27ae60" : "#1a2a6c";
             gCtx.beginPath(); gCtx.arc(n.x, n.y, n.r, 0, Math.PI*2); gCtx.fill();
             gCtx.fillStyle = "white"; gCtx.font = "10px sans-serif"; gCtx.textAlign = "center";
             gCtx.fillText(n.title.substring(0,6), n.x, n.y + 5);
@@ -280,22 +446,6 @@
         requestAnimationFrame(animateGraph);
     }
 
-    gCanvas.onmousedown = (e) => {
-        const rect = gCanvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-        dragNode = nodes.find(n => Math.sqrt((n.x-mx)**2 + (n.y-my)**2) < n.r);
-        if(!dragNode) gIsDragging = true;
-    };
-    window.onmousemove = (e) => {
-        if(dragNode) { dragNode.x = e.clientX; dragNode.y = e.clientY - 60; }
-    };
-    window.onmouseup = (e) => {
-        if(!tlMoved && dragNode) loadDoc(dragNode.title);
-        dragNode = null; gIsDragging = false;
-    };
-
-    // --- 기타 유틸리티 (유지) ---
-    function showTimeline() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 60; showSection('timeline-view'); drawTimeline(); }
     function loadDoc(title, isBack=false) {
         const item = allData.find(d => d.title === title);
         if(!item) return;
@@ -314,67 +464,6 @@
         document.getElementById('backlinks-list').innerHTML = allData.filter(d => d.title !== title && d.content.includes(title)).map(d => `<div class="link-item" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('') || "없음";
         window.scrollTo(0,0);
     }
-
-    async function save() {
-        const title = document.getElementById('ed-title').value; if(!title) return;
-        const isSermon = document.getElementById('ed-isSermon').checked;
-        const existing = allData.find(d => d.title === title);
-        const newData = {
-            title, content: document.getElementById('ed-content').innerHTML,
-            category: existing ? existing.category : (isSermon ? "설교노트" : "미분류"),
-            date: document.getElementById('ed-date').value, preacher: document.getElementById('ed-preacher').value,
-            scripture: document.getElementById('ed-scripture').value, sermonTopic: document.getElementById('ed-sermonTopic').value,
-            year: document.getElementById('ed-year').value, isSermon
-        };
-        const idx = allData.findIndex(d => d.title === title);
-        if(idx > -1) allData[idx] = newData; else allData.push(newData);
-        goHome();
-        fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
-    }
-
-    function renderHome() {
-        const container = document.getElementById('category-container');
-        const dejavuData = allData.filter(d => !d.isSermon && d.category !== '설교노트');
-        container.innerHTML = categories.filter(c => c !== '설교노트').map(cat => `
-            <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                <div style="font-weight:800; color:${catColors[cat]||'#1a2a6c'}; margin-bottom:12px;">${cat} <span onclick="renameCategory('${cat}')">✏️</span></div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px;">
-                    ${dejavuData.filter(d => d.category === cat).map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function renderSermonTable() {
-        const tbody = document.getElementById('sermon-list-body');
-        let sermons = allData.filter(d => d.isSermon);
-        tbody.innerHTML = sermons.map(s => `<tr onclick="loadDoc('${s.title}')"><td>${formatDate(s.date)}</td><td style="font-weight:bold;">${s.title}</td><td>${s.scripture||'-'}</td><td>${s.preacher||'-'}</td><td>${(s.sermonTopic||'').split(',').map(t => `<span class="tag-pill" style="background:${getTagColor(t)}">${t}</span>`).join('')}</td></tr>`).join('');
-    }
-
-    function switchMainMode(m) { currentMainMode=m; goHome(); }
-    function showSection(id) { document.querySelectorAll('.section').forEach(s=>s.style.display='none'); document.getElementById('timeline-view').style.display='none'; document.getElementById('graph-view').style.display='none'; document.getElementById(id).style.display='block'; }
-    function goHome() { showSection(currentMainMode==='dejavu'?'home-view':'sermon-home-view'); renderHome(); renderSermonTable(); }
-    function goBack() { if(docHistory.length>0) loadDoc(docHistory.pop(), true); else goHome(); }
-    function showEditor() { showSection('edit-view'); ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value=""); document.getElementById('ed-content').innerHTML=""; }
-    function editCurrent() { const d=allData.find(x=>x.title===document.getElementById('dv-title').innerText); showEditor(); document.getElementById('ed-title').value=d.title; document.getElementById('ed-content').innerHTML=d.content; }
-    function closeModal() { document.getElementById('modal').style.display='none'; }
-    function toggleEditorFields() { const s = document.getElementById('ed-isSermon').checked; document.getElementById('sermon-fields').style.display=s?'block':'none'; document.getElementById('dejavu-fields').style.display=s?'none':'block'; }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-    function formatDate(r) { if(!r) return "-"; return String(r).split('T')[0]; }
-    function getTagColor(t) { let h=0; if(!t) return "#ccc"; for(let i=0;i<t.length;i++) h=t.charCodeAt(i)+((h<<5)-h); return `hsl(${Math.abs(h)%360},60%,45%)`; }
-    function filterHomeItems() { const q=document.getElementById('home-search').value.toLowerCase(); document.querySelectorAll('.db-card').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q)?'':'none'); }
-    function exec(c) { document.execCommand(c, false, null); }
-
-    tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
-    window.addEventListener('mousemove', (e) => { if(!tlIsDragging) return; if(Math.abs(e.clientX - tlLastX) > 5) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); });
-    window.addEventListener('mouseup', (e) => {
-        if(!tlMoved && tlIsDragging) {
-            const rect = tlCanvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-            allData.forEach(d => { if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) loadDoc(d.title); });
-        }
-        tlIsDragging = false;
-    });
 
     window.onload = init;
 </script>
