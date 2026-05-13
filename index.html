@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>데자뷰 - 통합 워크스페이스 (v3.3 타임라인 개선본)</title>
+    <title>데자뷰 - 통합 워크스페이스 (v3.7 맵 기능 제거본)</title>
     <style>
         :root { --bg: #f4f7f6; --primary: #1a2a6c; --accent: #00a8ff; --card: #ffffff; --text: #333; --border: #e0e0e0; --sermon: #27ae60; }
         body.dark-mode { --bg: #121212; --primary: #0a0e27; --accent: #00a8ff; --card: #1e1e1e; --text: #e0e0e0; --border: #333; }
@@ -16,9 +16,6 @@
         .nav-btns { display: flex; gap: 8px; }
         .section { display: none; padding: 20px 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #graph-view { display: none; height: calc(100vh - 60px); width: 100%; background: #f0f2f5; position: fixed; top: 60px; left: 0; z-index: 500; }
-        body.dark-mode #graph-view { background: #000; }
-        #graph-canvas { width: 100%; height: 100%; cursor: grab; }
         .doc-container { display: grid; grid-template-columns: 250px 1fr 250px; gap: 20px; align-items: start; }
         @media (max-width: 1024px) {
             .doc-container { grid-template-columns: 1fr; }
@@ -52,19 +49,19 @@
 
 <header>
     <div class="logo-area">
-        <div class="logo" onclick="goHome()">🌀 Déjà Vu</div>
+        <div class="logo" onclick="goHome()">🌀 데자뷰</div>
         <button id="mode-dejavu" class="mode-btn active" onclick="switchMainMode('dejavu')">지식</button>
         <button id="mode-sermon" class="mode-btn" onclick="switchMainMode('sermon')">설교</button>
     </div>
     <div class="nav-btns">
         <button class="btn-main" style="background:#444;" onclick="toggleDarkMode()">🌓</button>
-        <button class="btn-main" style="background:#6c5ce7;" onclick="showGraph()">🕸 맵</button>
         <button class="btn-main" style="background:#34495e;" onclick="showTimeline()">📅 타임라인</button>
         <button class="btn-main" onclick="showEditor()">+</button>
     </div>
 </header>
 
 <main>
+    <!-- 지식 홈 -->
     <section id="home-view" class="section" style="display: block;">
         <div style="display:flex; justify-content:space-between; margin-bottom:20px; gap:10px;">
             <input type="text" id="home-search" placeholder="지식 검색..." oninput="filterHomeItems()" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd;">
@@ -73,6 +70,7 @@
         <div id="category-container"></div>
     </section>
 
+    <!-- 설교 홈 -->
     <section id="sermon-home-view" class="section">
         <input type="text" id="sermon-search" placeholder="설교 검색..." oninput="filterSermonTable()" style="width:100%; padding:10px; border-radius:20px; border:1px solid #ddd; margin-bottom:15px; box-sizing:border-box;">
         <div class="sermon-container">
@@ -91,9 +89,10 @@
         </div>
     </section>
 
+    <!-- 문서 뷰어 -->
     <section id="doc-view" class="section">
         <div class="doc-container">
-            <div class="side-panel"><h4>📂 백링크</h4><div id="backlinks-list"></div></div>
+            <div class="side-panel"><h4>📂 나를 인용함 (Backlinks)</h4><div id="backlinks-list"></div></div>
             <div class="main-doc">
                 <div id="dv-meta-area" style="margin-bottom:10px;"></div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -103,10 +102,11 @@
                 <div id="dv-content"></div>
                 <button onclick="goBack()" style="margin-top:30px; background:none; border:none; color:#888; cursor:pointer;">← 돌아가기</button>
             </div>
-            <div class="side-panel"><h4>🔗 언급됨</h4><div id="forward-links-list"></div></div>
+            <div class="side-panel"><h4>🔗 언급함 (Forward Links)</h4><div id="forward-links-list"></div></div>
         </div>
     </section>
 
+    <!-- 편집기 -->
     <section id="edit-view" class="section">
         <div style="background:white; padding:20px; border-radius:15px;">
             <label><input type="checkbox" id="ed-isSermon" onchange="toggleEditorFields()"> 설교 노트</label>
@@ -135,12 +135,6 @@
         <canvas id="timeline-canvas"></canvas>
         <div class="tl-controls"><button class="btn-main" style="background:#666;" onclick="goHome()">닫기</button></div>
     </section>
-
-    <!-- 거미줄 맵 뷰 -->
-    <section id="graph-view">
-        <canvas id="graph-canvas"></canvas>
-        <div class="tl-controls"><button class="btn-main" style="background:#666;" onclick="goHome()">닫기</button></div>
-    </section>
 </main>
 
 <script>
@@ -165,7 +159,56 @@
         } catch(e) { console.error("로드 실패", e); }
     }
 
-    // --- [수정사항: 타임라인 로직] ---
+    function addCategory() {
+        const name = prompt("새 카테고리 이름을 입력하세요:");
+        if (name && !categories.includes(name)) {
+            categories.push(name);
+            renderHome();
+        } else if(categories.includes(name)) {
+            alert("이미 존재하는 카테고리입니다.");
+        }
+    }
+
+    function formatDate(dateInput) {
+        if (!dateInput) return "-";
+        return String(dateInput).split('T')[0]; 
+    }
+
+    function formatDateForInput(dateInput) {
+        if (!dateInput) return "";
+        return String(dateInput).split('T')[0];
+    }
+
+    function loadDoc(title, isBack=false) {
+        const item = allData.find(d => d.title === title);
+        if(!item) return;
+        if (!isBack && document.getElementById('dv-title').innerText) docHistory.push(document.getElementById('dv-title').innerText);
+        showSection('doc-view');
+        document.getElementById('dv-title').innerText = title;
+        document.getElementById('dv-meta-area').innerHTML = item.isSermon ? `📖 ${formatDate(item.date)} | ${item.preacher}` : (item.year ? `📅 ${item.year}` : "");
+        
+        let content = item.content;
+        let mentionedDocs = [];
+
+        allData.forEach(d => {
+            if(d.title !== title && content.includes(d.title)) {
+                mentionedDocs.push(d.title);
+                const regex = new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g');
+                content = content.replace(regex, `<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
+            }
+        });
+
+        document.getElementById('dv-content').innerHTML = content;
+        document.getElementById('backlinks-list').innerHTML = allData
+            .filter(d => d.title !== title && d.content.includes(title))
+            .map(d => `<div class="link-item" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('') || "없음";
+
+        document.getElementById('forward-links-list').innerHTML = [...new Set(mentionedDocs)]
+            .map(t => `<div class="link-item" onclick="loadDoc('${t}')">${t}</div>`).join('') || "없음";
+
+        window.scrollTo(0,0);
+    }
+
     const tlCanvas = document.getElementById('timeline-canvas');
     const tlCtx = tlCanvas.getContext('2d');
     let tlOffsetX = 0, tlScale = 1.0, tlIsDragging = false, tlLastX = 0, tlMoved = false;
@@ -173,89 +216,87 @@
     function drawTimeline() {
         tlCtx.clearRect(0,0,tlCanvas.width,tlCanvas.height);
         const centerX = tlCanvas.width/2 + tlOffsetX;
-        const yearWidth = 100 * tlScale; // 100년당 픽셀 너비
+        const yearWidth = 100 * tlScale;
         const searchQuery = document.getElementById('tl-search').value.toLowerCase();
 
-        // 1. 배경 눈금 및 연도 표시 (100단위)
+        // 1. 그리드
         tlCtx.strokeStyle = "rgba(255,255,255,0.1)";
         tlCtx.fillStyle = "#888";
         tlCtx.font = "12px sans-serif";
         tlCtx.textAlign = "center";
-
-        // 화면에 보일 범위 계산하여 -2000년부터 2500년까지 반복
         for(let y=-2000; y<=2500; y+=100) {
             let x = centerX + (y - 2000) * (yearWidth / 100);
             if(x < -200 || x > tlCanvas.width + 200) continue;
-            
-            tlCtx.beginPath();
-            tlCtx.moveTo(x, 0);
-            tlCtx.lineTo(x, tlCanvas.height);
-            tlCtx.stroke();
+            tlCtx.beginPath(); tlCtx.moveTo(x, 0); tlCtx.lineTo(x, tlCanvas.height); tlCtx.stroke();
             tlCtx.fillText(y + "년", x, tlCanvas.height - 20);
         }
 
-        // 2. 데이터 바(Bar) 그리기
-        let yPos = 80;
+        // 2. 사건 배경 레이어
         allData.forEach(d => {
-            if(!d.year || d.isSermon) return;
+            if(d.category !== '사건' || !d.year) return;
             const years = String(d.year).match(/-?\d+/g);
             if(!years) return;
-            
             const startYear = parseInt(years[0]);
-            const endYear = years.length > 1 ? parseInt(years[1]) : startYear;
-            
+            const endYear = years.length > 1 ? parseInt(years[1]) : (startYear + 1);
             const startX = centerX + (startYear - 2000) * (yearWidth / 100);
             const endX = centerX + (endYear - 2000) * (yearWidth / 100);
+            const width = Math.max(endX - startX, 2);
+
+            tlCtx.fillStyle = "rgba(0, 168, 255, 0.12)"; 
+            tlCtx.fillRect(startX, 0, width, tlCanvas.height - 40);
             
+            tlCtx.save();
+            tlCtx.translate(startX + 5, 30);
+            tlCtx.rotate(Math.PI / 2);
+            tlCtx.fillStyle = "rgba(255, 255, 255, 0.45)";
+            tlCtx.font = "bold 13px Pretendard";
+            tlCtx.textAlign = "left";
+            tlCtx.fillText(`${d.title} (${d.year})`, 0, 0);
+            tlCtx.restore();
+        });
+
+        // 3. 일반 카드
+        let yPos = 80;
+        allData.forEach(d => {
+            if(!d.year || d.isSermon || d.category === '사건') return;
+            const years = String(d.year).match(/-?\d+/g);
+            if(!years) return;
+            const startYear = parseInt(years[0]);
+            const endYear = years.length > 1 ? parseInt(years[1]) : startYear;
+            const startX = centerX + (startYear - 2000) * (yearWidth / 100);
+            const endX = centerX + (endYear - 2000) * (yearWidth / 100);
             const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
-            tlCtx.fillStyle = isMatch ? "#f1c40f" : "#1a2a6c";
             
+            tlCtx.fillStyle = isMatch ? "#f1c40f" : "#1a2a6c";
             const displayText = `${d.title} (${d.year})`;
             tlCtx.font = "bold 13px Pretendard";
             const textWidth = tlCtx.measureText(displayText).width + 25;
-            
-            let barWidth = Math.max(endX - startX, 10); // 점 데이터도 최소 너비 확보
+            let barWidth = Math.max(endX - startX, 10);
             let finalWidth = (years.length > 1) ? Math.max(barWidth, 40) : textWidth;
 
-            // 둥근 사각형 그리기
             tlCtx.beginPath();
-            if(tlCtx.roundRect) {
-                tlCtx.roundRect(startX, yPos, finalWidth, 40, 8);
-                tlCtx.fill();
-            } else {
-                tlCtx.fillRect(startX, yPos, finalWidth, 40);
-            }
-
+            if(tlCtx.roundRect) { tlCtx.roundRect(startX, yPos, finalWidth, 40, 8); tlCtx.fill(); } 
+            else { tlCtx.fillRect(startX, yPos, finalWidth, 40); }
+            
             tlCtx.fillStyle = isMatch ? "#000" : "white";
             tlCtx.textAlign = "left";
             tlCtx.fillText(displayText, startX + 12, yPos + 25);
-            
             d._tlPos = {x: startX, y: yPos, w: finalWidth, h: 40}; 
             yPos = (yPos+60 > tlCanvas.height-150) ? 80 : yPos+60;
         });
     }
 
-    // 마우스 휠 확대/축소 이벤트 추가
     tlCanvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomSpeed = 0.1;
-        if (e.deltaY < 0) {
-            tlScale *= (1 + zoomSpeed); // 확대
-        } else {
-            tlScale *= (1 - zoomSpeed); // 축소
-        }
-        tlScale = Math.max(0.1, Math.min(tlScale, 10)); // 범위 제한
+        if (e.deltaY < 0) tlScale *= (1 + zoomSpeed); else tlScale *= (1 - zoomSpeed);
+        tlScale = Math.max(0.1, Math.min(tlScale, 10));
         drawTimeline();
     }, { passive: false });
 
-    // --- 기존 기능 유지 영역 (수정 없음) ---
     function sortSermons(field) {
-        if (sermonSortState.field === field) {
-            sermonSortState.asc = !sermonSortState.asc;
-        } else {
-            sermonSortState.field = field;
-            sermonSortState.asc = true;
-        }
+        if (sermonSortState.field === field) { sermonSortState.asc = !sermonSortState.asc; } 
+        else { sermonSortState.field = field; sermonSortState.asc = true; }
         renderSermonTable();
     }
 
@@ -280,13 +321,11 @@
     function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
     function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
     function drop(ev, newCat) {
-        ev.preventDefault();
-        ev.currentTarget.classList.remove('drag-over');
+        ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
         const title = ev.dataTransfer.getData("text");
         const item = allData.find(d => d.title === title);
         if (item && item.category !== newCat) {
-            item.category = newCat;
-            renderHome();
+            item.category = newCat; renderHome();
             fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(item) });
         }
     }
@@ -358,11 +397,24 @@
         `).join('');
     }
 
+    function filterHomeItems() {
+        const query = document.getElementById('home-search').value.toLowerCase();
+        document.querySelectorAll('.db-card').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none';
+        });
+    }
+
+    function filterSermonTable() {
+        const query = document.getElementById('sermon-search').value.toLowerCase();
+        document.querySelectorAll('#sermon-list-body tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+        });
+    }
+
     function switchMainMode(m) { currentMainMode=m; goHome(); }
     function showSection(id) { 
         document.querySelectorAll('.section').forEach(s=>s.style.display='none'); 
         document.getElementById('timeline-view').style.display='none'; 
-        document.getElementById('graph-view').style.display='none'; 
         document.getElementById(id).style.display='block'; 
     }
     function goHome() { showSection(currentMainMode==='dejavu'?'home-view':'sermon-home-view'); renderHome(); renderSermonTable(); }
@@ -370,12 +422,9 @@
     function showEditor() { showSection('edit-view'); ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value=""); document.getElementById('ed-content').innerHTML=""; document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); toggleEditorFields(); }
     function toggleEditorFields() { const s = document.getElementById('ed-isSermon').checked; document.getElementById('sermon-fields').style.display=s?'block':'none'; document.getElementById('dejavu-fields').style.display=s?'none':'block'; }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-    function formatDate(r) { if(!r) return "-"; return String(r).split('T')[0]; }
-    function formatDateForInput(dateStr) { if (!dateStr) return ""; const d = new Date(dateStr); return isNaN(d.getTime()) ? "" : d.toISOString().split('T')[0]; }
     function getTagColor(t) { let h=0; if(!t) return "#ccc"; for(let i=0;i<t.length;i++) h=t.charCodeAt(i)+((h<<5)-h); return `hsl(${Math.abs(h)%360},60%,45%)`; }
     function exec(c) { document.execCommand(c, false, null); }
 
-    // 타임라인 드래그 이벤트
     tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
     window.addEventListener('mousemove', (e) => { if(!tlIsDragging) return; if(Math.abs(e.clientX - tlLastX) > 5) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); });
     window.addEventListener('mouseup', (e) => {
@@ -387,83 +436,7 @@
         tlIsDragging = false;
     });
 
-    function showTimeline() { 
-        tlCanvas.width = window.innerWidth; 
-        tlCanvas.height = window.innerHeight - 60; 
-        showSection('timeline-view'); 
-        drawTimeline(); 
-    }
-
-    // 그래프 (v3.2 유지)
-    const gCanvas = document.getElementById('graph-canvas');
-    const gCtx = gCanvas.getContext('2d');
-    let nodes = [], links = [];
-
-    function showGraph() {
-        showSection('graph-view');
-        gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight - 60;
-        initGraph();
-        animateGraph();
-    }
-
-    function initGraph() {
-        nodes = allData.map((d, i) => ({ ...d, x: Math.random() * gCanvas.width, y: Math.random() * gCanvas.height, vx: 0, vy: 0, r: 25 }));
-        links = [];
-        nodes.forEach(source => {
-            nodes.forEach(target => {
-                if(source.title !== target.title && source.content.includes(target.title)) { links.push({source, target}); }
-            });
-        });
-    }
-
-    function animateGraph() {
-        if(document.getElementById('graph-view').style.display === 'none') return;
-        gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
-        nodes.forEach(n => {
-            nodes.forEach(n2 => {
-                if(n === n2) return;
-                const dx = n.x - n2.x, dy = n.y - n2.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                if(dist < 150) { n.vx += dx/dist * 0.5; n.vy += dy/dist * 0.5; }
-            });
-            n.vx *= 0.9; n.vy *= 0.9; n.x += n.vx; n.y += n.vy;
-            n.x = Math.max(50, Math.min(gCanvas.width-50, n.x));
-            n.y = Math.max(50, Math.min(gCanvas.height-50, n.y));
-        });
-        links.forEach(l => {
-            const dx = l.target.x - l.source.x, dy = l.target.y - l.source.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
-            const force = (dist - 100) * 0.01;
-            l.source.vx += dx/dist * force; l.source.vy += dy/dist * force;
-            l.target.vx -= dx/dist * force; l.target.vy -= dy/dist * force;
-            gCtx.strokeStyle = "rgba(150,150,150,0.3)";
-            gCtx.beginPath(); gCtx.moveTo(l.source.x, l.source.y); gCtx.lineTo(l.target.x, l.target.y); gCtx.stroke();
-        });
-        nodes.forEach(n => {
-            gCtx.fillStyle = n.isSermon ? "#27ae60" : "#1a2a6c";
-            gCtx.beginPath(); gCtx.arc(n.x, n.y, n.r, 0, Math.PI*2); gCtx.fill();
-            gCtx.fillStyle = "white"; gCtx.font = "10px sans-serif"; gCtx.textAlign = "center";
-            gCtx.fillText(n.title.substring(0,6), n.x, n.y + 5);
-        });
-        requestAnimationFrame(animateGraph);
-    }
-
-    function loadDoc(title, isBack=false) {
-        const item = allData.find(d => d.title === title);
-        if(!item) return;
-        if (!isBack && document.getElementById('dv-title').innerText) docHistory.push(document.getElementById('dv-title').innerText);
-        showSection('doc-view');
-        document.getElementById('dv-title').innerText = title;
-        document.getElementById('dv-meta-area').innerHTML = item.isSermon ? `📖 ${formatDate(item.date)} | ${item.preacher}` : (item.year ? `📅 ${item.year}` : "");
-        let content = item.content;
-        allData.forEach(d => {
-            if(d.title !== title && content.includes(d.title)) {
-                const regex = new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g');
-                content = content.replace(regex, `<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
-            }
-        });
-        document.getElementById('dv-content').innerHTML = content;
-        document.getElementById('backlinks-list').innerHTML = allData.filter(d => d.title !== title && d.content.includes(title)).map(d => `<div class="link-item" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('') || "없음";
-        window.scrollTo(0,0);
-    }
+    function showTimeline() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 60; showSection('timeline-view'); drawTimeline(); }
 
     window.onload = init;
 </script>
