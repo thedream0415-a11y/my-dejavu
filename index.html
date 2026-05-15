@@ -3,76 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>데자뷰 - 통합 워크스페이스 (v3.7 맵 기능 제거본)</title>
+    <title>데자뷰 - 프리미엄 통합 워크스페이스</title>
     <style>
-        :root { --bg: #f4f7f6; --primary: #1a2a6c; --accent: #00a8ff; --card: #ffffff; --text: #333; --border: #e0e0e0; --sermon: #27ae60; }
-        body.dark-mode { --bg: #121212; --primary: #0a0e27; --accent: #00a8ff; --card: #1e1e1e; --text: #e0e0e0; --border: #333; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; color: var(--text); transition: 0.3s; overflow-x: hidden; }
-        header { background: var(--primary); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; height: 60px; box-sizing: border-box; }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .logo { font-size: 1.1rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
-        .mode-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-        .mode-btn.active { background: var(--accent); }
-        .nav-btns { display: flex; gap: 8px; }
-        .section { display: none; padding: 20px 15px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.2s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .doc-container { display: grid; grid-template-columns: 250px 1fr 250px; gap: 20px; align-items: start; }
-        @media (max-width: 1024px) {
-            .doc-container { grid-template-columns: 1fr; }
-            .side-panel { position: static !important; order: 2; margin-top: 10px; width: 100%; box-sizing: border-box; }
-            .main-doc { order: 1; padding: 20px !important; width: 100%; box-sizing: border-box; }
+        :root { 
+            --bg: #f9f9f9;
+            --primary: #2d3436; --accent: #FAC608; --accent-hover: #e5b507;
+            --card: #ffffff; --text: #2d3436; --text-light: #636e72; --border: #dfe6e9; 
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --sat-color: #0984e3; --sun-color: #d63031;
         }
-        .side-panel { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.03); max-height: 80vh; overflow-y: auto; position: sticky; top: 80px; }
-        .side-panel h4 { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
-        .link-item { padding: 8px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid #eee; transition: 0.2s; }
-        .main-doc { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); color: #333; min-height: 50vh; }
-        .category-group { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px dashed transparent; }
-        .category-group.drag-over { border-color: var(--accent); background: rgba(0,168,255,0.05); }
-        .db-card { background: var(--card); padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); font-weight: 600; cursor: pointer; }
-        .sermon-container { background: var(--card); border-radius: 15px; overflow-x: auto; }
-        .s-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        .s-table th { padding: 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-align: left; cursor: pointer; background: rgba(0,0,0,0.02); }
-        .s-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; text-align: left; }
-        .tag-pill { padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; color: white; display: inline-block; margin: 2px; }
-        #timeline-view { display: none; height: calc(100vh - 60px); width: 100%; background: #121212; position: fixed; top: 60px; left: 0; z-index: 500; touch-action: none; }
-        #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
-        .tl-header { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 600; width: 300px; }
-        .tl-header input { width: 100%; padding: 10px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none; }
-        .tl-controls { position: absolute; bottom: 20px; right: 20px; z-index: 600; }
-        .btn-main { background: var(--accent); color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
-        .auto-link { color: var(--accent); font-weight: bold; text-decoration: underline; cursor: pointer; }
-        .toolbar { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; display: flex; gap: 5px; border-radius: 8px 8px 0 0; }
-        #ed-content { width: 100%; min-height: 400px; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; background: white; outline: none; box-sizing: border-box; }
+        body.dark-mode { 
+            --bg: #1e272e;
+            --primary: #000000; --card: #2f3640; --text: #f5f6fa; 
+            --text-light: #dcdde1; --border: #3d3d3d; 
+            --sat-color: #74b9ff; --sun-color: #ff7675;
+        }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; color: var(--text);
+        transition: 0.3s; overflow-x: hidden; }
+
+        /* Header UI */
+        header { 
+            background: var(--primary);
+            color: white; padding: 0 20px; display: flex; justify-content: space-between; 
+            align-items: center; position: sticky; top: 0; z-index: 1000; height: 65px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .logo-area { display: flex; align-items: center;
+        gap: 15px; }
+        .logo { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; cursor: pointer;
+        color: var(--accent); }
+        .mode-btn { background: rgba(255,255,255,0.1); border: none; color: white;
+        padding: 8px 16px; border-radius: 25px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s;
+        }
+        .mode-btn.active { background: var(--accent); color: var(--primary);
+        }
+        .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.2);
+        }
+        .nav-btns { display: flex; gap: 10px;
+        }
+        .btn-main { background: var(--accent); color: var(--primary); border: none; padding: 10px 20px;
+        border-radius: 30px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 4px 0px var(--accent-hover);
+        }
+        .btn-main:active { transform: translateY(3px); box-shadow: none;
+        }
+
+        /* Layout & Sections */
+        .section { display: none;
+        padding: 30px 20px; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s ease-out; box-sizing: border-box;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);
+        } to { opacity: 1; transform: translateY(0); } }
+        .doc-container { display: grid;
+        grid-template-columns: 250px 1fr 250px; gap: 20px; align-items: start; }
+        @media (max-width: 1024px) {
+            .doc-container { grid-template-columns: 1fr;
+            }
+            .side-panel { position: static !important; order: 2;
+            margin-top: 10px; width: 100%; box-sizing: border-box; }
+            .main-doc { order: 1;
+            padding: 20px !important; width: 100%; box-sizing: border-box; }
+        }
+
+        /* Cards & Panels */
+        .category-group { background: var(--card);
+        border-radius: 20px; padding: 20px; margin-bottom: 30px; border: 2px dashed transparent; box-shadow: var(--shadow); transition: 0.2s;
+        }
+        .category-group.drag-over { border-color: var(--accent); background: rgba(250, 198, 8, 0.05);
+        }
+        .category-title { font-size: 1rem; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center;
+        gap: 8px; }
+        .category-title::before { content: ''; width: 4px; height: 16px; background: var(--accent);
+        border-radius: 2px; }
+        .side-panel { background: var(--card); padding: 15px; border-radius: 15px;
+        border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.03); max-height: 80vh; overflow-y: auto; position: sticky; top: 85px;
+        }
+        .side-panel h4 { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--primary);
+        border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+        .link-item { padding: 8px; font-size: 0.85rem;
+        cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; color: var(--text);
+        }
+        .link-item:hover { color: var(--accent); background: rgba(0,0,0,0.02);
+        }
+        .db-card { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center;
+        border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text);
+        }
+        .db-card:hover { transform: translateY(-3px); border-color: var(--accent);
+        box-shadow: 0 6px 15px rgba(250, 198, 8, 0.15); }
+
+        /* Tables & Grid */
+        .sermon-container { background: var(--card);
+        border-radius: 15px; overflow-x: auto; }
+        .s-table { width: 100%; border-collapse: separate;
+        border-spacing: 0 8px; min-width: 800px; }
+        .s-table th { padding: 12px; text-align: left;
+        color: var(--text-light); font-size: 0.85rem; cursor: pointer; background: rgba(0,0,0,0.02); }
+        .s-table tr { background: var(--card);
+        cursor: pointer; transition: 0.2s; }
+        .s-table td { padding: 15px;
+        border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 0.85rem;
+        }
+        .s-table td:first-child { border-left: 1px solid var(--border); border-radius: 12px 0 0 12px;
+        }
+        .s-table td:last-child { border-right: 1px solid var(--border); border-radius: 0 12px 12px 0;
+        }
+        .s-table tr:hover { transform: scale(1.005); box-shadow: var(--shadow);
+        }
+
+        /* 다이어리 캘린더 시스템 */
+        .diary-grid { display: grid;
+        grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .weekday-header { text-align: center; font-weight: 800;
+        font-size: 0.85rem; padding: 10px 0; color: var(--text-light); border-bottom: 2px solid var(--border); margin-bottom: 5px;
+        }
+        .weekday-header.sun { color: var(--sun-color);
+        }
+        .weekday-header.sat { color: var(--sat-color);
+        }
+        
+        .day-box { 
+            background: var(--card);
+            border-radius: 14px; border: 1px solid var(--border); 
+            padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-start; 
+            gap: 6px;
+            transition: 0.2s; box-sizing: border-box; height: 125px; overflow-y: auto;
+        }
+        .day-box::-webkit-scrollbar { width: 3px;
+        }
+        .day-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px;
+        }
+        
+        .day-box:hover { border-color: var(--accent);
+        background: #fffdf5; transform: translateY(-2px); }
+        .day-box.empty-day { background: transparent; border: none; cursor: default;
+        pointer-events: none; height: 125px; }
+        .day-num { font-weight: 900; font-size: 1.05rem; color: var(--text);
+        opacity: 0.4; }
+        .day-box.sun .day-num { color: var(--sun-color); opacity: 0.6;
+        }
+        .day-box.sat .day-num { color: var(--sat-color); opacity: 0.6;
+        }
+        
+        .mini-todo-container { display: flex;
+        flex-direction: column; gap: 4px; width: 100%; margin-top: 2px; }
+        .mini-todo-list { 
+            font-size: 0.72rem;
+            line-height: 1.4; color: var(--text-light); text-align: left; 
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+            margin: 0; padding: 1px 0 1px 6px;
+            border-left: 2px solid var(--accent); 
+            width: 100%; box-sizing: border-box; display: block;
+        }
+
+        /* Editor Boxes */
+        .main-doc { background: var(--card);
+        padding: 40px; border-radius: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); color: var(--text); min-height: 50vh;
+        }
+        .sub-editor-title { font-size: 1rem; font-weight: 800; margin: 15px 0 8px 0;
+        color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .sub-editor-box { width: 100%;
+        min-height: 240px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: white; color: #2d3436; outline: none; box-sizing: border-box; line-height: 1.6;
+        font-size: 0.95rem; }
+
+        /* Timetable Layout */
+        #diary-timetable-container { position: relative;
+        width: 100%; box-sizing: border-box; overflow: visible; }
+        .time-row { display: flex;
+        border-bottom: 1px solid var(--border); height: 55px; position: relative; box-sizing: border-box;
+        }
+        .time-label { width: 60px; font-size: 11px; background: rgba(0,0,0,0.02); display: flex; align-items: center;
+        justify-content: center; font-weight: bold; border-right: 1px solid var(--border); color: var(--text-light);
+        }
+        .time-content { flex: 1; display: flex; position: relative; height: 100%;
+        }
+        .slot-10min { flex: 1; height: 100%; border-right: 1px dashed rgba(0,0,0,0.05); cursor: cell;
+        box-sizing: border-box; }
+        .slot-10min.selecting { background: rgba(0, 0, 0, 0.08) !important;
+        }
+        
+        .tag-pill { padding: 4px 10px;
+        border-radius: 20px; color: white; font-size: 0.75rem; font-weight: bold; margin: 2px; display: inline-block;
+        }
+        .auto-link { color: var(--text); font-weight: bold; text-decoration: underline; cursor: pointer;
+        }
+        .cal-nav-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text);
+        padding: 5px 10px; font-weight: bold; }
+        .cal-nav-btn:hover { color: var(--accent);
+        }
+        .year-select { background: transparent; border: none; font-size: 2rem; font-weight: 900; color: var(--text);
+        cursor: pointer; outline: none; font-family: inherit; letter-spacing: -1px; }
+
+        /* Timeline Canvas */
+        #timeline-view { display: none;
+        height: calc(100vh - 65px); width: 100%; background: #121212; position: fixed; top: 65px; left: 0; z-index: 500; touch-action: none;
+        }
+        #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab;
+        }
     </style>
 </head>
-<body>
+<body onmouseup="diaryEndDrag()">
 
 <header>
     <div class="logo-area">
-        <div class="logo" onclick="goHome()">🌀 데자뷰</div>
+        <div class="logo" onclick="goHome()">🌀 DEJAVU</div>
         <button id="mode-dejavu" class="mode-btn active" onclick="switchMainMode('dejavu')">지식</button>
         <button id="mode-sermon" class="mode-btn" onclick="switchMainMode('sermon')">설교</button>
+        <button id="mode-diary" class="mode-btn" onclick="switchMainMode('diary')">다이어리</button>
     </div>
     <div class="nav-btns">
-        <button class="btn-main" style="background:#444;" onclick="toggleDarkMode()">🌓</button>
-        <button class="btn-main" style="background:#34495e;" onclick="showTimeline()">📅 타임라인</button>
+        <button class="btn-main" style="background:#3d3d3d; color:white; box-shadow: 0 4px 0 #000;"
+        onclick="toggleDarkMode()">🌓</button>
+        <button class="btn-main" style="background:#4a5568; color:white; box-shadow: 0 4px 0 #2d3748;"
+        onclick="showTimeline()">📅 타임라인</button>
         <button class="btn-main" onclick="showEditor()">+</button>
     </div>
 </header>
 
 <main>
-    <!-- 지식 홈 -->
     <section id="home-view" class="section" style="display: block;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px; gap:10px;">
-            <input type="text" id="home-search" placeholder="지식 검색..." oninput="filterHomeItems()" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; gap:15px;">
+            <input type="text" id="home-search" placeholder="찾고 싶은 지식을 검색하세요..." oninput="filterHomeItems()" style="flex:1; padding:15px 25px; border-radius:30px; border:1px solid var(--border); outline:none;">
             <button class="btn-main" onclick="addCategory()">+ 카테고리</button>
         </div>
         <div id="category-container"></div>
     </section>
 
-    <!-- 설교 홈 -->
     <section id="sermon-home-view" class="section">
-        <input type="text" id="sermon-search" placeholder="설교 검색..." oninput="filterSermonTable()" style="width:100%; padding:10px; border-radius:20px; border:1px solid #ddd; margin-bottom:15px; box-sizing:border-box;">
+        <input type="text" id="sermon-search" placeholder="설교 날짜, 제목, 본문 검색..." oninput="filterSermonTable()" style="width:100%; padding:15px; border-radius:15px; border:1px solid var(--border); margin-bottom:20px; box-sizing:border-box;">
         <div class="sermon-container">
             <table class="s-table">
                 <thead>
@@ -89,249 +245,262 @@
         </div>
     </section>
 
-    <!-- 문서 뷰어 -->
+    <section id="diary-home-view" class="section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <select id="calendar-year-select" class="year-select" onchange="selectYear(this.value)"></select>
+                    <h2 id="calendar-title" style="font-weight: 900; font-size: 2rem; margin:0; letter-spacing:-1px;"></h2>
+                </div>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+            </div>
+            <div style="color:var(--text-light); font-weight:bold;">DAILY SCHEDULER</div>
+        </div>
+        <div class="diary-grid" style="margin-bottom: 10px;">
+            <div class="weekday-header sun">SUN</div><div class="weekday-header">MON</div><div class="weekday-header">TUE</div>
+            <div class="weekday-header">WED</div><div class="weekday-header">THU</div><div class="weekday-header">FRI</div>
+            <div class="weekday-header sat">SAT</div>
+        </div>
+        <div class="diary-grid" id="calendar-grid"></div>
+    </section>
+
+    <section id="diary-editor-view" class="section">
+        <div class="doc-container" style="grid-template-columns: 1fr 380px;">
+            <div class="main-doc" style="padding: 30px;">
+                <div id="diary-date-label" style="font-size:1.8rem; font-weight:900; margin-bottom:25px; color:var(--text);"></div>
+                
+                <div class="sub-editor-title"><span style="color:#FAC608;">▪</span> 오늘의 QT</div>
+                <div id="diary-qt" class="sub-editor-box" contenteditable="true"></div>
+
+                <div class="sub-editor-title"><span style="color:#2d3436;">▪</span> To-Do List</div>
+                <div id="diary-todo" class="sub-editor-box" contenteditable="true" style="min-height: 260px;"></div>
+
+                <div style="margin-top:30px; display:flex; justify-content:flex-end; gap:12px;">
+                    <button class="mode-btn" style="color:var(--text); background:rgba(0,0,0,0.05);" onclick="goHome()">취소</button>
+                    <button class="btn-main" style="background:#000; color:#fff; box-shadow: 0 4px 0 #333;" onclick="saveDiary()">저장하기</button>
+                </div>
+            </div>
+            <div class="side-panel" style="padding:0; overflow:visible; max-height:none; position:static;">
+                <div style="padding:20px; background:var(--primary); color:#fff; font-weight:900; font-size:0.9rem; letter-spacing:1px;">TIME TABLE</div>
+                <div id="diary-timetable-container"></div>
+            </div>
+        </div>
+    </section>
+
     <section id="doc-view" class="section">
         <div class="doc-container">
-            <div class="side-panel"><h4>📂 나를 인용함 (Backlinks)</h4><div id="backlinks-list"></div></div>
+            <div class="side-panel">
+                <h4>📂 나를 인용함 (Backlinks)</h4>
+                <div id="backlinks-list"></div>
+            </div>
             <div class="main-doc">
-                <div id="dv-meta-area" style="margin-bottom:10px;"></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h1 id="dv-title" style="margin:0; font-size:1.5rem;"></h1>
+                <div id="dv-meta-area" style="color:var(--text-light); font-weight:bold; margin-bottom:10px;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+                    <h1 id="dv-title" style="margin:0; font-size:2.2rem; font-weight:900; letter-spacing:-1px;"></h1>
                     <button class="btn-main" onclick="editCurrent()">수정</button>
                 </div>
-                <div id="dv-content"></div>
-                <button onclick="goBack()" style="margin-top:30px; background:none; border:none; color:#888; cursor:pointer;">← 돌아가기</button>
+                <div id="dv-content" style="line-height:1.8; font-size:1.05rem; white-space: pre-wrap;"></div>
+                <hr style="margin:40px 0; border:0; border-top:1px solid var(--border);">
+                <button onclick="goBack()" style="border:none; background:none; color:var(--text-light); cursor:pointer; font-weight:bold;">← 돌아가기</button>
             </div>
-            <div class="side-panel"><h4>🔗 언급함 (Forward Links)</h4><div id="forward-links-list"></div></div>
+            <div class="side-panel">
+                <h4>🔗 언급함 (Forward Links)</h4>
+                <div id="forward-links-list"></div>
+            </div>
         </div>
     </section>
 
-    <!-- 편집기 -->
     <section id="edit-view" class="section">
-        <div style="background:white; padding:20px; border-radius:15px;">
-            <label><input type="checkbox" id="ed-isSermon" onchange="toggleEditorFields()"> 설교 노트</label>
-            <input type="text" id="ed-title" placeholder="제목" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
-            <div id="sermon-fields" style="display:none; margin-bottom:10px;">
-                <input type="date" id="ed-date" style="width:48%; padding:10px; margin-right:2%;">
-                <input type="text" id="ed-preacher" placeholder="설교자" style="width:48%; padding:10px;">
-                <input type="text" id="ed-scripture" placeholder="본문" style="width:100%; padding:10px; margin-top:5px;">
-                <input type="text" id="ed-sermonTopic" placeholder="주제(태그)" style="width:100%; padding:10px; margin-top:5px;">
+        <div class="main-doc">
+            <h2 style="margin-top:0;">노트 작성</h2>
+            <div style="margin-bottom:20px; padding:15px; background:var(--bg); border-radius:12px;">
+                <label style="font-weight:bold; cursor:pointer;"><input type="checkbox" id="ed-isSermon" onchange="toggleEditorFields()"> 설교 노트로 지정</label>
             </div>
-            <div id="dejavu-fields">
-                <input type="text" id="ed-year" placeholder="연도 (예: 1902~1920)" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+            <input type="text" id="ed-title" placeholder="제목을 입력하세요..." style="width:100%; padding:15px; margin-bottom:15px; border:1px solid var(--border); border-radius:12px; font-size:1.2rem; font-weight:bold; box-sizing:border-box;">
+            
+            <div id="sermon-fields" style="display:none; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <input type="date" id="ed-date" style="padding:12px; border:1px solid var(--border); border-radius:10px; width:100%; box-sizing:border-box;">
+                    <input type="text" id="ed-preacher" placeholder="설교자" style="padding:12px; border:1px solid var(--border); border-radius:10px; width:100%; box-sizing:border-box;">
+                </div>
+                <input type="text" id="ed-scripture" placeholder="본문 (예: 창세기 1:1)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; box-sizing:border-box;">
+                <input type="text" id="ed-sermonTopic" placeholder="주제 태그 (쉼표로 구분)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; box-sizing:border-box;">
             </div>
+
+            <div id="dejavu-fields" style="margin-bottom:15px;">
+                <input type="text" id="ed-year" placeholder="연도 (타임라인 표시용 예: 1902~1920)" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; box-sizing:border-box;">
+            </div>
+
             <div class="toolbar"><button onclick="exec('bold')">B</button><button onclick="exec('underline')">U</button></div>
             <div id="ed-content" contenteditable="true"></div>
-            <div style="margin-top:20px; display:flex; justify-content:space-between;">
-                <button onclick="goHome()">취소</button>
-                <button class="btn-main" onclick="save()">저장</button>
+            
+            <div style="margin-top:25px; display:flex; justify-content:space-between;">
+                <button class="mode-btn" style="color:var(--text)" onclick="goHome()">취소</button>
+                <button class="btn-main" onclick="save()">저장하기</button>
             </div>
         </div>
     </section>
 
-    <!-- 타임라인 뷰 -->
     <section id="timeline-view">
-        <div class="tl-header"><input type="text" id="tl-search" placeholder="타임라인에서 검색..." oninput="drawTimeline()"></div>
+        <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 600; width: 300px;">
+            <input type="text" id="tl-search" placeholder="타임라인에서 검색..." oninput="drawTimeline()" style="width: 100%; padding: 10px 20px; border-radius: 20px; border: none; background: rgba(255,255,255,0.2); color: white; outline: none;">
+        </div>
         <canvas id="timeline-canvas"></canvas>
-        <div class="tl-controls"><button class="btn-main" style="background:#666;" onclick="goHome()">닫기</button></div>
+        <div style="position: absolute; bottom: 20px; right: 20px; z-index: 600;"><button class="btn-main" style="background:#666;" onclick="goHome()">닫기</button></div>
     </section>
 </main>
 
+<div id="color-picker" style="position: fixed; z-index: 2000; background: white; border-radius: 20px; padding: 10px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2); gap: 10px; border:1px solid var(--border);">
+    <div style="width:20px; height:20px; border-radius:50%; background:#e1b12c; cursor:pointer;" onclick="applyDiaryColor('#e1b12c')"></div>
+    <div style="width:20px; height:20px; border-radius:50%; background:#2d3436; cursor:pointer;" onclick="applyDiaryColor('#2d3436')"></div>
+    <div style="width:20px; height:20px; border-radius:50%; background:#4a5568; cursor:pointer;" onclick="applyDiaryColor('#4a5568')"></div>
+    <div style="width:20px; height:20px; border-radius:50%; background:#718093; cursor:pointer;" onclick="applyDiaryColor('#718093')"></div>
+</div>
+
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbxp5h5nOf5pMQADLkkDiB7ZRLID53BIBFl8CDhdrcCtiq_QdRIEVJTJprojiLG55ddtxQ/exec";
+    // [마우스 뒤로가기 연동] 마우스 사이드 버튼(4번 버튼) 클릭 감지 및 뒤로가기 실행
+    window.addEventListener('mousedown', (e) => {
+        if (e.button === 3) { 
+            e.preventDefault(); 
+            goBack();           
+        }
+    });
+
+    const API = "https://script.google.com/macros/s/AKfycbzNQHsEse51qAg83LUFoT_6sZRYQ5j-3NwZ_Dj4Q563jilZWnc_n_GY_fIMFRuoeUhmYw/exec";
     let allData = [], categories = ["미분류"], docHistory = [];
-    let currentMainMode = 'dejavu';
-    let sermonSortState = { field: 'date', asc: false };
+    let currentMainMode = 'dejavu', sermonSortState = { field: 'date', asc: false };
+    
+    let currentYear = 2026, currentMonth = 5;
+    let diaryIsDragging = false, diaryStartIdx = null, diaryEndIdx = null, diarySelectedRange = null;
+    
+    const tlCanvas = document.getElementById('timeline-canvas'), tlCtx = tlCanvas.getContext('2d');
+    let tlOffsetX = 0, tlScale = 1.0, tlIsDragging = false, tlLastX = 0, tlMoved = false;
+
+    function postToGoogle(payload) {
+        const formBody = new URLSearchParams();
+        for (let key in payload) {
+            formBody.append(key, payload[key] !== undefined ? payload[key] : "");
+        }
+        fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formBody.toString(),
+            mode: 'no-cors'
+        }).catch(e => console.error("백그라운드 전송 실패:", e));
+    }
 
     async function init() {
+        buildYearSelect();
+        goHome();
+        
         try {
-            const res = await fetch(`${API}?list=all`);
+            // [호환성 패치] 로컬 파일 실행 환경에서의 데이터 연동 안정성 향상
+            const res = await fetch(`${API}?list=all&_=${new Date().getTime()}`);
             const data = await res.json();
+            
             allData = data.fullData.map(d => ({
                 ...d,
-                category: (d.category === "지식 저장소" || !d.category) ? "미분류" : d.category,
+                category: d.category ? String(d.category).trim() : "미분류",
                 isSermon: String(d.isSermon).toUpperCase() === "TRUE"
             }));
-            const savedCats = [...new Set(allData.map(d => d.category))];
-            categories = savedCats.length > 0 ? savedCats : ["미분류"];
+            categories = [...new Set(allData.map(d => d.category))].filter(c => c && c !== '설교노트' && c !== '다이어리');
+            if(!categories.includes("미분류")) categories.unshift("미분류");
             renderHome();
             renderSermonTable();
-        } catch(e) { console.error("로드 실패", e); }
+            if(currentMainMode === 'diary') renderCalendar();
+        } catch(e) { 
+            console.error("데이터 로드 실패:", e);
+        }
+    }
+
+    function buildYearSelect() {
+        const select = document.getElementById('calendar-year-select');
+        if(!select) return;
+        select.innerHTML = '';
+        for(let y = 2020; y <= 2035; y++) {
+            const opt = document.createElement('option');
+            opt.value = y; opt.innerText = `${y}년`;
+            if(y === currentYear) opt.selected = true;
+            select.appendChild(opt);
+        }
+    }
+
+    function changeMonth(dir) {
+        currentMonth += dir;
+        if(currentMonth > 12) { currentMonth = 1; currentYear++; }
+        if(currentMonth < 1) { currentMonth = 12; currentYear--; }
+        document.getElementById('calendar-year-select').value = currentYear;
+        renderCalendar();
+    }
+
+    function selectYear(year) {
+        currentYear = parseInt(year);
+        renderCalendar();
+    }
+
+    function switchMainMode(m) { 
+        currentMainMode = m;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`));
+        goHome(); 
+    }
+
+    function goHome() { 
+        showSection(currentMainMode === 'dejavu' ? 'home-view' : (currentMainMode === 'sermon' ? 'sermon-home-view' : 'diary-home-view'));
+        if(currentMainMode === 'diary') renderCalendar();
+        renderHome(); renderSermonTable(); 
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById('timeline-view').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function goBack() { if(docHistory.length > 0) loadDoc(docHistory.pop(), true); else goHome(); }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    function exec(c) { document.execCommand(c, false, null); }
+    
+    function formatDate(d, dStr) { 
+        if(dStr && String(dStr).trim().length > 3) return String(dStr).trim();
+        if(!d) return "";
+        let s = String(d).trim();
+        if(s.includes('T')) s = s.split('T')[0];
+        const parts = s.replace(/\//g, '-').split('-');
+        if(parts.length >= 3) {
+            return `${parts[0].trim()}-${parts[1].trim().padStart(2, '0')}-${parts[2].trim().substring(0, 2).padStart(2, '0')}`;
+        }
+        return s;
+    }
+    
+    function getTagColor(t) { let h=0; if(!t) return "#ccc"; for(let i=0;i<t.length;i++) h=t.charCodeAt(i)+((h<<5)-h); return `hsl(${Math.abs(h)%360},60%,45%)`; }
+
+    /* [지식 모드] */
+    function renderHome() {
+        const container = document.getElementById('category-container');
+        if (!container) return;
+        const dejavuData = allData.filter(d => !d.isSermon && d.category !== '설교노트' && d.category !== '다이어리');
+        container.innerHTML = categories.map(cat => `
+            <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="ev=>ev.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')">
+                <div class="category-title">${cat} <span style="cursor:pointer; font-size:0.85rem;" onclick="renameCategory('${cat}')">✏️</span></div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:15px;">
+                    ${dejavuData.filter(d => d.category === cat).map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}
+                </div>
+            </div>`).join('');
+    }
+
+    function filterHomeItems() {
+        const query = document.getElementById('home-search').value.toLowerCase();
+        document.querySelectorAll('.db-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none');
     }
 
     function addCategory() {
-        const name = prompt("새 카테고리 이름을 입력하세요:");
-        if (name && !categories.includes(name)) {
-            categories.push(name);
-            renderHome();
-        } else if(categories.includes(name)) {
-            alert("이미 존재하는 카테고리입니다.");
-        }
-    }
-
-    function formatDate(dateInput) {
-        if (!dateInput) return "-";
-        return String(dateInput).split('T')[0]; 
-    }
-
-    function formatDateForInput(dateInput) {
-        if (!dateInput) return "";
-        return String(dateInput).split('T')[0];
-    }
-
-    function loadDoc(title, isBack=false) {
-        const item = allData.find(d => d.title === title);
-        if(!item) return;
-        if (!isBack && document.getElementById('dv-title').innerText) docHistory.push(document.getElementById('dv-title').innerText);
-        showSection('doc-view');
-        document.getElementById('dv-title').innerText = title;
-        document.getElementById('dv-meta-area').innerHTML = item.isSermon ? `📖 ${formatDate(item.date)} | ${item.preacher}` : (item.year ? `📅 ${item.year}` : "");
-        
-        let content = item.content;
-        let mentionedDocs = [];
-
-        allData.forEach(d => {
-            if(d.title !== title && content.includes(d.title)) {
-                mentionedDocs.push(d.title);
-                const regex = new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g');
-                content = content.replace(regex, `<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
-            }
-        });
-
-        document.getElementById('dv-content').innerHTML = content;
-        document.getElementById('backlinks-list').innerHTML = allData
-            .filter(d => d.title !== title && d.content.includes(title))
-            .map(d => `<div class="link-item" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('') || "없음";
-
-        document.getElementById('forward-links-list').innerHTML = [...new Set(mentionedDocs)]
-            .map(t => `<div class="link-item" onclick="loadDoc('${t}')">${t}</div>`).join('') || "없음";
-
-        window.scrollTo(0,0);
-    }
-
-    const tlCanvas = document.getElementById('timeline-canvas');
-    const tlCtx = tlCanvas.getContext('2d');
-    let tlOffsetX = 0, tlScale = 1.0, tlIsDragging = false, tlLastX = 0, tlMoved = false;
-
-    function drawTimeline() {
-        tlCtx.clearRect(0,0,tlCanvas.width,tlCanvas.height);
-        const centerX = tlCanvas.width/2 + tlOffsetX;
-        const yearWidth = 100 * tlScale;
-        const searchQuery = document.getElementById('tl-search').value.toLowerCase();
-
-        // 1. 그리드
-        tlCtx.strokeStyle = "rgba(255,255,255,0.1)";
-        tlCtx.fillStyle = "#888";
-        tlCtx.font = "12px sans-serif";
-        tlCtx.textAlign = "center";
-        for(let y=-2000; y<=2500; y+=100) {
-            let x = centerX + (y - 2000) * (yearWidth / 100);
-            if(x < -200 || x > tlCanvas.width + 200) continue;
-            tlCtx.beginPath(); tlCtx.moveTo(x, 0); tlCtx.lineTo(x, tlCanvas.height); tlCtx.stroke();
-            tlCtx.fillText(y + "년", x, tlCanvas.height - 20);
-        }
-
-        // 2. 사건 배경 레이어
-        allData.forEach(d => {
-            if(d.category !== '사건' || !d.year) return;
-            const years = String(d.year).match(/-?\d+/g);
-            if(!years) return;
-            const startYear = parseInt(years[0]);
-            const endYear = years.length > 1 ? parseInt(years[1]) : (startYear + 1);
-            const startX = centerX + (startYear - 2000) * (yearWidth / 100);
-            const endX = centerX + (endYear - 2000) * (yearWidth / 100);
-            const width = Math.max(endX - startX, 2);
-
-            tlCtx.fillStyle = "rgba(0, 168, 255, 0.12)"; 
-            tlCtx.fillRect(startX, 0, width, tlCanvas.height - 40);
-            
-            tlCtx.save();
-            tlCtx.translate(startX + 5, 30);
-            tlCtx.rotate(Math.PI / 2);
-            tlCtx.fillStyle = "rgba(255, 255, 255, 0.45)";
-            tlCtx.font = "bold 13px Pretendard";
-            tlCtx.textAlign = "left";
-            tlCtx.fillText(`${d.title} (${d.year})`, 0, 0);
-            tlCtx.restore();
-        });
-
-        // 3. 일반 카드
-        let yPos = 80;
-        allData.forEach(d => {
-            if(!d.year || d.isSermon || d.category === '사건') return;
-            const years = String(d.year).match(/-?\d+/g);
-            if(!years) return;
-            const startYear = parseInt(years[0]);
-            const endYear = years.length > 1 ? parseInt(years[1]) : startYear;
-            const startX = centerX + (startYear - 2000) * (yearWidth / 100);
-            const endX = centerX + (endYear - 2000) * (yearWidth / 100);
-            const isMatch = searchQuery && d.title.toLowerCase().includes(searchQuery);
-            
-            tlCtx.fillStyle = isMatch ? "#f1c40f" : "#1a2a6c";
-            const displayText = `${d.title} (${d.year})`;
-            tlCtx.font = "bold 13px Pretendard";
-            const textWidth = tlCtx.measureText(displayText).width + 25;
-            let barWidth = Math.max(endX - startX, 10);
-            let finalWidth = (years.length > 1) ? Math.max(barWidth, 40) : textWidth;
-
-            tlCtx.beginPath();
-            if(tlCtx.roundRect) { tlCtx.roundRect(startX, yPos, finalWidth, 40, 8); tlCtx.fill(); } 
-            else { tlCtx.fillRect(startX, yPos, finalWidth, 40); }
-            
-            tlCtx.fillStyle = isMatch ? "#000" : "white";
-            tlCtx.textAlign = "left";
-            tlCtx.fillText(displayText, startX + 12, yPos + 25);
-            d._tlPos = {x: startX, y: yPos, w: finalWidth, h: 40}; 
-            yPos = (yPos+60 > tlCanvas.height-150) ? 80 : yPos+60;
-        });
-    }
-
-    tlCanvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const zoomSpeed = 0.1;
-        if (e.deltaY < 0) tlScale *= (1 + zoomSpeed); else tlScale *= (1 - zoomSpeed);
-        tlScale = Math.max(0.1, Math.min(tlScale, 10));
-        drawTimeline();
-    }, { passive: false });
-
-    function sortSermons(field) {
-        if (sermonSortState.field === field) { sermonSortState.asc = !sermonSortState.asc; } 
-        else { sermonSortState.field = field; sermonSortState.asc = true; }
-        renderSermonTable();
-    }
-
-    function renderSermonTable() {
-        const tbody = document.getElementById('sermon-list-body');
-        let sermons = allData.filter(d => d.isSermon);
-        sermons.sort((a, b) => {
-            let valA = (a[sermonSortState.field] || "").toString().toLowerCase();
-            let valB = (b[sermonSortState.field] || "").toString().toLowerCase();
-            if (sermonSortState.field === 'date') {
-                valA = new Date(a.date || '1900-01-01').getTime();
-                valB = new Date(b.date || '1900-01-01').getTime();
-            }
-            if (valA < valB) return sermonSortState.asc ? -1 : 1;
-            if (valA > valB) return sermonSortState.asc ? 1 : -1;
-            return 0;
-        });
-        tbody.innerHTML = sermons.map(s => `<tr onclick="loadDoc('${s.title}')"><td>${formatDate(s.date)}</td><td style="font-weight:bold;">${s.title}</td><td>${s.scripture||'-'}</td><td>${s.preacher||'-'}</td><td>${(s.sermonTopic||'').split(',').map(t => t.trim() ? `<span class="tag-pill" style="background:${getTagColor(t.trim())}">${t.trim()}</span>` : '').join('')}</td></tr>`).join('');
-    }
-
-    function drag(ev, title) { ev.dataTransfer.setData("text", title); }
-    function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
-    function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
-    function drop(ev, newCat) {
-        ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
-        const title = ev.dataTransfer.getData("text");
-        const item = allData.find(d => d.title === title);
-        if (item && item.category !== newCat) {
-            item.category = newCat; renderHome();
-            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(item) });
-        }
+        const name = prompt("새 카테고리 이름:");
+        if (name && !categories.includes(name)) { categories.push(name); renderHome(); }
     }
 
     function renameCategory(oldName) {
-        const newName = prompt("카테고리 이름 수정:", oldName);
+        const newName = prompt("카테고리 수정:", oldName);
         if (newName && newName !== oldName) {
             categories = categories.map(c => c === oldName ? newName : c);
             allData.forEach(d => { if(d.category === oldName) d.category = newName; });
@@ -339,105 +508,321 @@
         }
     }
 
-    function editCurrent() {
-        const title = document.getElementById('dv-title').innerText;
-        const d = allData.find(x => x.title === title);
-        if (!d) return;
-        showEditor();
-        document.getElementById('ed-title').value = d.title;
-        document.getElementById('ed-content').innerHTML = d.content;
-        document.getElementById('ed-isSermon').checked = d.isSermon;
-        if (d.isSermon) {
-            document.getElementById('sermon-fields').style.display = 'block';
-            document.getElementById('dejavu-fields').style.display = 'none';
-            document.getElementById('ed-date').value = formatDateForInput(d.date);
-            document.getElementById('ed-preacher').value = d.preacher || "";
-            document.getElementById('ed-scripture').value = d.scripture || "";
-            document.getElementById('ed-sermonTopic').value = d.sermonTopic || "";
-        } else {
-            document.getElementById('sermon-fields').style.display = 'none';
-            document.getElementById('dejavu-fields').style.display = 'block';
-            document.getElementById('ed-year').value = d.year || "";
+    function drag(ev, title) { ev.dataTransfer.setData("text", title); }
+    function drop(ev, newCat) {
+        ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
+        const title = ev.dataTransfer.getData("text");
+        const item = allData.find(d => d.title === title);
+        if (item && item.category !== newCat) {
+            item.category = newCat;
+            renderHome();
+            postToGoogle(item);
         }
     }
 
-    async function save() {
-        const title = document.getElementById('ed-title').value;
-        if(!title) return;
-        const isSermon = document.getElementById('ed-isSermon').checked;
-        const existing = allData.find(d => d.title === title);
-        const newData = {
-            title, content: document.getElementById('ed-content').innerHTML,
-            category: existing ? existing.category : (isSermon ? "설교노트" : "미분류"),
-            date: isSermon ? document.getElementById('ed-date').value : "",
-            preacher: isSermon ? document.getElementById('ed-preacher').value : "",
-            scripture: isSermon ? document.getElementById('ed-scripture').value : "",
-            sermonTopic: isSermon ? document.getElementById('ed-sermonTopic').value : "",
-            year: !isSermon ? document.getElementById('ed-year').value : "",
-            isSermon: isSermon
-        };
-        const idx = allData.findIndex(d => d.title === title);
-        if(idx > -1) allData[idx] = newData; else allData.push(newData);
-        goHome();
-        fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(newData) });
-    }
-
-    function renderHome() {
-        const container = document.getElementById('category-container');
-        const dejavuData = allData.filter(d => !d.isSermon && d.category !== '설교노트');
-        container.innerHTML = categories.filter(c => c !== '설교노트').map(cat => `
-            <div class="category-group" ondrop="drop(event, '${cat}')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
-                <div style="font-weight:800; color:#1a2a6c; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                    ${cat} <span style="cursor:pointer; font-size:0.8rem;" onclick="renameCategory('${cat}')">✏️</span>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px;">
-                    ${dejavuData.filter(d => d.category === cat).map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function filterHomeItems() {
-        const query = document.getElementById('home-search').value.toLowerCase();
-        document.querySelectorAll('.db-card').forEach(card => {
-            card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none';
+    /* [설교 모드] */
+    function renderSermonTable() {
+        const tbody = document.getElementById('sermon-list-body');
+        if(!tbody) return;
+        let sermons = allData.filter(d => d.isSermon);
+        sermons.sort((a, b) => {
+            let valA = sermonSortState.field === 'date' ? new Date(formatDate(a.date, a.date_str) || '1900-01-01').getTime() : (a[sermonSortState.field] || "").toString().toLowerCase();
+            let valB = sermonSortState.field === 'date' ? new Date(formatDate(b.date, b.date_str) || '1900-01-01').getTime() : (b[sermonSortState.field] || "").toString().toLowerCase();
+            return valA < valB ? (sermonSortState.asc ? -1 : 1) : (valA > valB ? (sermonSortState.asc ? 1 : -1) : 0);
         });
+        tbody.innerHTML = sermons.map(s => `
+            <tr onclick="loadDoc('${s.title}')">
+                <td>${formatDate(s.date, s.date_str)}</td><td style="font-weight:bold;">${s.title}</td><td>${s.scripture||'-'}</td><td>${s.preacher||'-'}</td>
+                <td>${(s.sermonTopic||'').split(',').map(t => t.trim() ? `<span class="tag-pill" style="background:${getTagColor(t.trim())}">${t.trim()}</span>` : '').join('')}</td>
+            </tr>`).join('');
     }
 
     function filterSermonTable() {
         const query = document.getElementById('sermon-search').value.toLowerCase();
-        document.querySelectorAll('#sermon-list-body tr').forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+        document.querySelectorAll('#sermon-list-body tr').forEach(row => row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none');
+    }
+
+    function sortSermons(field) {
+        sermonSortState = { field, asc: sermonSortState.field === field ? !sermonSortState.asc : true };
+        renderSermonTable();
+    }
+
+    /* [문서 뷰어] */
+    function loadDoc(title, isBack=false) {
+        const item = allData.find(d => d.title === title);
+        if(!item) return;
+        if (!isBack && document.getElementById('dv-title').innerText) docHistory.push(document.getElementById('dv-title').innerText);
+        showSection('doc-view');
+        document.getElementById('dv-title').innerText = title;
+        document.getElementById('dv-meta-area').innerHTML = item.isSermon ? `📖 ${formatDate(item.date, item.date_str)} | ${item.preacher}` : (item.year ? `📅 ${item.year}` : "");
+        
+        let content = item.content, mentionedDocs = [];
+        allData.forEach(d => {
+            if(d.title !== title && content.includes(d.title)) {
+                mentionedDocs.push(d.title);
+                content = content.replace(new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g'), `<span class="auto-link" onclick="loadDoc('${d.title}')">${d.title}</span>`);
+            }
+        });
+        document.getElementById('dv-content').innerHTML = content;
+        document.getElementById('backlinks-list').innerHTML = allData.filter(d => d.title !== title && d.content.includes(title)).map(d => `<div class="link-item" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('') || "없음";
+        document.getElementById('forward-links-list').innerHTML = [...new Set(mentionedDocs)].map(t => `<div class="link-item" onclick="loadDoc('${t}')">${t}</div>`).join('') || "없음";
+        window.scrollTo(0,0);
+    }
+
+    /* [편집 및 저장] */
+    function showEditor() { 
+        showSection('edit-view');
+        ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value=""); 
+        document.getElementById('ed-content').innerHTML=""; document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); 
+        toggleEditorFields(); 
+    }
+    
+    function toggleEditorFields() { 
+        const s = document.getElementById('ed-isSermon').checked;
+        document.getElementById('sermon-fields').style.display = s ? 'block' : 'none'; 
+        document.getElementById('dejavu-fields').style.display = s ? 'none' : 'block';
+    }
+
+    function editCurrent() {
+        const d = allData.find(x => x.title === document.getElementById('dv-title').innerText);
+        if (!d) return;
+        showSection('edit-view');
+        document.getElementById('ed-title').value = d.title;
+        document.getElementById('ed-content').innerHTML = d.content;
+        document.getElementById('ed-isSermon').checked = d.isSermon;
+        toggleEditorFields();
+        if (d.isSermon) {
+            document.getElementById('ed-date').value = formatDate(d.date, d.date_str);
+            ["preacher","scripture","sermonTopic"].forEach(f => document.getElementById(`ed-${f}`).value = d[f] || "");
+        } else { document.getElementById('ed-year').value = d.year || ""; }
+    }
+
+    function save() {
+        const title = document.getElementById('ed-title').value;
+        if(!title) return;
+        const isSermon = document.getElementById('ed-isSermon').checked, existing = allData.find(d => d.title === title);
+        const inputDate = isSermon ? document.getElementById('ed-date').value : "";
+        const newData = {
+            title, content: document.getElementById('ed-content').innerHTML, isSermon,
+            category: existing ? existing.category : (isSermon ? "설교노트" : "미분류"),
+            date: inputDate, date_str: inputDate,
+            preacher: isSermon ? document.getElementById('ed-preacher').value : "",
+            scripture: isSermon ? document.getElementById('ed-scripture').value : "",
+            sermonTopic: isSermon ? document.getElementById('ed-sermonTopic').value : "",
+            year: !isSermon ? document.getElementById('ed-year').value : ""
+        };
+        const idx = allData.findIndex(d => d.title === title);
+        if(idx > -1) allData[idx] = newData; else allData.push(newData);
+        
+        goHome();
+        postToGoogle(newData);
+    }
+
+    /* [다이어리 시스템] */
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        if(!grid) return;
+        grid.innerHTML = '';
+        
+        document.getElementById('calendar-title').innerText = `${String(currentMonth).padStart(2,'0')}월`;
+        const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay();
+        const totalDays = new Date(currentYear, currentMonth, 0).getDate(); 
+
+        for (let b = 0; b < firstDayIndex; b++) {
+            grid.innerHTML += `<div class="day-box empty-day"></div>`;
+        }
+
+        for(let i=1; i<=totalDays; i++) {
+            const formattedDateStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const currentDayOfWeek = new Date(currentYear, currentMonth - 1, i).getDay(); 
+            
+            let dayClass = "";
+            if(currentDayOfWeek === 0) dayClass = "sun";
+            else if(currentDayOfWeek === 6) dayClass = "sat";
+
+            const targetDiary = allData.find(d => d.category === '다이어리' && d.date_str && String(d.date_str).trim() === formattedDateStr);
+            let todoSnippets = "";
+
+            if(targetDiary && targetDiary.content) {
+                const hasDivider = targetDiary.content.includes("[QT_END]");
+                const todoRaw = hasDivider ? targetDiary.content.split("[QT_END]")[1] : "";
+                
+                if(todoRaw && todoRaw.trim()) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(`<div>${todoRaw}</div>`, 'text/html');
+                    let items = [];
+                    doc.body.firstChild.childNodes.forEach(node => {
+                        let txt = node.textContent ? node.textContent.trim() : "";
+                        if(txt) items.push(txt.replace(/\s+/g, ' '));
+                    });
+                    todoSnippets = items.slice(0, 3).map(todo => `<span class="mini-todo-list">${todo.replace(/&nbsp;/g, ' ')}</span>`).join('');
+                }
+            }
+
+            grid.innerHTML += `<div class="day-box ${dayClass}" onclick="openDiary('${formattedDateStr}')">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; position:sticky; top:0; background:var(--card); padding-bottom:2px; z-index:10;">
+                    <div class="day-num">${i}</div>
+                    ${targetDiary ? '<div style="width:6px; height:6px; background:#FAC608; border-radius:50%;"></div>' : ''}
+                </div>
+                <div class="mini-todo-container">${todoSnippets}</div>
+            </div>`;
+        }
+    }
+
+    function openDiary(date) {
+        showSection('diary-editor-view');
+        document.getElementById('diary-date-label').innerText = `📅 ${date}`;
+        
+        const existing = allData.find(d => d.category === '다이어리' && d.date_str && String(d.date_str).trim() === date);
+        if (existing && existing.content) {
+            if(existing.content.includes("[QT_END]")) {
+                const parts = existing.content.split("[QT_END]");
+                document.getElementById('diary-qt').innerHTML = parts[0] || "";
+                document.getElementById('diary-todo').innerHTML = parts[1] || "";
+            } else {
+                document.getElementById('diary-qt').innerHTML = existing.content;
+                document.getElementById('diary-todo').innerHTML = "";
+            }
+        } else {
+            document.getElementById('diary-qt').innerHTML = "";
+            document.getElementById('diary-todo').innerHTML = "";
+        }
+        renderTimetable();
+    }
+
+    function renderTimetable() {
+        const container = document.getElementById('diary-timetable-container');
+        if(!container) return;
+        container.innerHTML = '';
+        let globalIdx = 0;
+        
+        for(let i=0; i<24; i++) {
+            let h = (4 + i) % 24;
+            let slots = ''; 
+            for(let m=0; m<6; m++) { 
+                slots += `<div class="slot-10min" data-idx="${globalIdx++}" onmousedown="diaryStartDrag(event, ${globalIdx-1})" onmouseover="diaryDuringDrag(${globalIdx-1})"></div>`;
+            }
+            container.innerHTML += `<div class="time-row" id="row-hour-${h}"><div class="time-label">${String(h).padStart(2,'0')}:00</div><div class="time-content" id="hour-${h}">${slots}</div></div>`;
+        }
+    }
+
+    function diaryStartDrag(e, idx) { e.preventDefault(); diaryIsDragging = true; diaryStartIdx = idx; diaryEndIdx = idx; updateDiarySelection(); }
+    function diaryDuringDrag(idx) { if(diaryIsDragging) { diaryEndIdx = idx; updateDiarySelection(); } }
+    
+    function diaryEndDrag() { 
+        if(!diaryIsDragging) return;
+        diaryIsDragging = false; 
+        diarySelectedRange = { start: Math.min(diaryStartIdx, diaryEndIdx), end: Math.max(diaryStartIdx, diaryEndIdx) };
+        const lastSelectedSlot = document.querySelector(`[data-idx="${diarySelectedRange.end}"]`);
+        if(!lastSelectedSlot) return;
+        const rect = lastSelectedSlot.getBoundingClientRect();
+        const picker = document.getElementById('color-picker');
+        picker.style.cssText += `display:flex; top:${rect.bottom + window.scrollY}px; left:${rect.left}px;`;
+    }
+
+    function updateDiarySelection() {
+        const s = Math.min(diaryStartIdx, diaryEndIdx), e = Math.max(diaryStartIdx, diaryEndIdx);
+        document.querySelectorAll('.slot-10min').forEach(slot => {
+            const idx = parseInt(slot.dataset.idx);
+            slot.classList.toggle('selecting', idx >= s && idx <= e);
         });
     }
 
-    function switchMainMode(m) { currentMainMode=m; goHome(); }
-    function showSection(id) { 
-        document.querySelectorAll('.section').forEach(s=>s.style.display='none'); 
-        document.getElementById('timeline-view').style.display='none'; 
-        document.getElementById(id).style.display='block'; 
+    function applyDiaryColor(color) {
+        const {start, end} = diarySelectedRange;
+        const totalSlots = (end - start) + 1;
+        const startHourRowIdx = Math.floor(start / 6); 
+        const startMinSlot = start % 6;
+        const allTimeContents = document.querySelectorAll('#diary-timetable-container .time-content');
+        const targetContainer = allTimeContents[startHourRowIdx];
+        if(!targetContainer) return;
+        
+        const slotWidth = targetContainer.offsetWidth / 6;
+        const block = document.createElement('div');
+        const rowHeight = 55; 
+        
+        const calculatedHeight = Math.ceil((totalSlots + startMinSlot) / 6) * rowHeight - 10;
+        const calculatedWidth = Math.min(totalSlots, 6 - startMinSlot) * slotWidth - 4;
+        
+        block.style.cssText = `position:absolute; top:5px; height:${calculatedHeight}px; border-radius:6px; font-size:10px; padding:5px; display:flex;
+        align-items:center; font-weight:bold; overflow:hidden; z-index:100; cursor:pointer; background:${color}; color:${(color==='#2d3436'||color==='#4a5568')?'white':'black'}; width:${calculatedWidth}px; left:${startMinSlot * slotWidth}px; box-shadow:0 2px 5px rgba(0,0,0,0.15);`;
+        block.innerHTML = `<input type="text" placeholder="일정..." style="background:transparent; border:none; width:100%; color:inherit; font-size:10px; outline:none; font-weight:bold;">`;
+        
+        block.ondblclick = () => block.remove(); 
+        targetContainer.appendChild(block);
+        document.getElementById('color-picker').style.display = 'none';
+        document.querySelectorAll('.slot-10min').forEach(s => s.classList.remove('selecting'));
     }
-    function goHome() { showSection(currentMainMode==='dejavu'?'home-view':'sermon-home-view'); renderHome(); renderSermonTable(); }
-    function goBack() { if(docHistory.length>0) loadDoc(docHistory.pop(), true); else goHome(); }
-    function showEditor() { showSection('edit-view'); ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value=""); document.getElementById('ed-content').innerHTML=""; document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); toggleEditorFields(); }
-    function toggleEditorFields() { const s = document.getElementById('ed-isSermon').checked; document.getElementById('sermon-fields').style.display=s?'block':'none'; document.getElementById('dejavu-fields').style.display=s?'none':'block'; }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-    function getTagColor(t) { let h=0; if(!t) return "#ccc"; for(let i=0;i<t.length;i++) h=t.charCodeAt(i)+((h<<5)-h); return `hsl(${Math.abs(h)%360},60%,45%)`; }
-    function exec(c) { document.execCommand(c, false, null); }
 
+    function saveDiary() {
+        const fullLabel = document.getElementById('diary-date-label').innerText;
+        const date = fullLabel.replace('📅 ', '').trim();
+        
+        const qtHtml = document.getElementById('diary-qt').innerHTML;
+        const todoHtml = document.getElementById('diary-todo').innerHTML;
+        const integratedContent = `${qtHtml}[QT_END]${todoHtml}`;
+        const newData = { 
+            title: `Diary_${date}`, 
+            content: integratedContent, 
+            category: "다이어리", 
+            date: date, 
+            date_str: date, 
+            isSermon: "false" 
+        };
+        const idx = allData.findIndex(d => d.title === newData.title);
+        if(idx > -1) allData[idx] = newData; else allData.push(newData);
+        goHome();
+        postToGoogle(newData);
+    }
+
+    /* [타임라인 캔버스] */
+    function showTimeline() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 65; showSection('timeline-view'); drawTimeline(); }
+    function drawTimeline() {
+        tlCtx.clearRect(0,0,tlCanvas.width,tlCanvas.height);
+        const centerX = tlCanvas.width/2 + tlOffsetX, yearWidth = 100 * tlScale, query = document.getElementById('tl-search').value.toLowerCase();
+
+        tlCtx.strokeStyle = "rgba(255,255,255,0.1)"; tlCtx.fillStyle = "#888";
+        tlCtx.font = "12px sans-serif"; tlCtx.textAlign = "center";
+        for(let y=-2000; y<=2500; y+=100) {
+            let x = centerX + (y - 2000) * (yearWidth / 100);
+            if(x < -200 || x > tlCanvas.width + 200) continue;
+            tlCtx.beginPath(); tlCtx.moveTo(x, 0); tlCtx.lineTo(x, tlCanvas.height); tlCtx.stroke();
+            tlCtx.fillText(y + "년", x, tlCanvas.height - 20);
+        }
+
+        allData.forEach(d => {
+            if(d.category !== '사건' || !d.year) return;
+            const years = String(d.year).match(/-?\d+/g); if(!years) return;
+            const startX = centerX + (parseInt(years[0]) - 2000) * (yearWidth / 100), endX = centerX + ((years.length > 1 ? parseInt(years[1]) : parseInt(years[0])+1) - 2000) * (yearWidth / 100);
+         
+            tlCtx.fillStyle = "rgba(250, 198, 8, 0.12)"; tlCtx.fillRect(startX, 0, Math.max(endX - startX, 2), tlCanvas.height - 40);
+            tlCtx.save(); tlCtx.translate(startX + 5, 30); tlCtx.rotate(Math.PI / 2); tlCtx.fillStyle = "rgba(255, 255, 255, 0.45)"; tlCtx.font = "bold 13px Pretendard"; tlCtx.textAlign = "left"; tlCtx.fillText(`${d.title} (${d.year})`, 0, 0); tlCtx.restore();
+        });
+        let yPos = 80;
+        allData.forEach(d => {
+            if(!d.year || d.isSermon || d.category === '사건') return;
+            const years = String(d.year).match(/-?\d+/g); if(!years) return;
+            const startX = centerX + (parseInt(years[0]) - 2000) * (yearWidth / 100), isMatch = query && d.title.toLowerCase().includes(query);
+            tlCtx.fillStyle = isMatch ? "#ffffff" : "#FAC608";
+            
+            const text = `${d.title} (${d.year})`, finalWidth = (years.length > 1) ? Math.max(centerX + (parseInt(years[1]) - 2000) * (yearWidth / 100) - startX, 40) : tlCtx.measureText(text).width + 25;
+            
+            tlCtx.beginPath(); if(tlCtx.roundRect) tlCtx.roundRect(startX, yPos, finalWidth, 40, 8); else tlCtx.fillRect(startX, yPos, finalWidth, 40); tlCtx.fill();
+            tlCtx.fillStyle = "#2d3436"; tlCtx.textAlign = "left"; tlCtx.fillText(text, startX + 12, yPos + 25);
+            d._tlPos = {x: startX, y: yPos, w: finalWidth, h: 40}; yPos = (yPos+60 > tlCanvas.height-150) ? 80 : yPos+60;
+        });
+    }
+
+    tlCanvas.addEventListener('wheel', (e) => { e.preventDefault(); tlScale = Math.max(0.1, Math.min(tlScale * (e.deltaY < 0 ? 1.1 : 0.9), 10)); drawTimeline(); }, { passive: false });
     tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
-    window.addEventListener('mousemove', (e) => { if(!tlIsDragging) return; if(Math.abs(e.clientX - tlLastX) > 5) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); });
+    window.addEventListener('mousemove', (e) => { if(tlIsDragging) { if(Math.abs(e.clientX - tlLastX) > 5) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); } });
     window.addEventListener('mouseup', (e) => {
         if(!tlMoved && tlIsDragging) {
-            const rect = tlCanvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            const rect = tlCanvas.getBoundingClientRect(), mx = e.clientX - rect.left, my = e.clientY - rect.top;
             allData.forEach(d => { if(d._tlPos && mx >= d._tlPos.x && mx <= d._tlPos.x + d._tlPos.w && my >= d._tlPos.y && my <= d._tlPos.y + d._tlPos.h) loadDoc(d.title); });
         }
         tlIsDragging = false;
     });
-
-    function showTimeline() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 60; showSection('timeline-view'); drawTimeline(); }
-
     window.onload = init;
 </script>
 </body>
