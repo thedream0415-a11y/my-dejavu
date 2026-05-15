@@ -271,10 +271,10 @@
                 <div id="diary-date-label" style="font-size:1.8rem; font-weight:900; margin-bottom:25px; color:var(--text);"></div>
                 
                 <div class="sub-editor-title"><span style="color:#FAC608;">▪</span> 오늘의 QT</div>
-                <div id="diary-qt" class="sub-editor-box" contenteditable="true"></div>
+                <div id="diary-qt" class="sub-editor-box" contenteditable="true" spellcheck="false"></div>
 
                 <div class="sub-editor-title"><span style="color:#2d3436;">▪</span> To-Do List</div>
-                <div id="diary-todo" class="sub-editor-box" contenteditable="true" style="min-height: 260px;"></div>
+                <div id="diary-todo" class="sub-editor-box" contenteditable="true" style="min-height: 260px;" spellcheck="false"></div>
 
                 <div style="margin-top:30px; display:flex; justify-content:flex-end; gap:12px;">
                     <button class="mode-btn" style="color:var(--text); background:rgba(0,0,0,0.05);" onclick="goHome()">취소</button>
@@ -333,7 +333,7 @@
             </div>
 
             <div class="toolbar"><button onclick="exec('bold')">B</button><button onclick="exec('underline')">U</button></div>
-            <div id="ed-content" contenteditable="true"></div>
+            <div id="ed-content" contenteditable="true" spellcheck="false"></div>
             
             <div style="margin-top:25px; display:flex; justify-content:space-between;">
                 <button class="mode-btn" style="color:var(--text)" onclick="goHome()">취소</button>
@@ -692,7 +692,7 @@
 
     function renderTimetable() {
         const container = document.getElementById('diary-timetable-container');
-        if(!container) return;
+        if(! Bourne) return;
         container.innerHTML = '';
         let globalIdx = 0;
         
