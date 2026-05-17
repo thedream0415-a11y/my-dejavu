@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>데자뷰 - 프리미엄 통합 워크스페이스</title>
     <style>
         :root { 
@@ -19,7 +19,7 @@
             --sat-color: #74b9ff; --sun-color: #ff7675;
         }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; color: var(--text);
-            transition: 0.3s; overflow-x: hidden; }
+            transition: 0.3s; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 
         /* Header UI */
         header { 
@@ -120,7 +120,7 @@
 
         /* Timeline Canvas View & Modal Popup */
         #timeline-view { display: none; height: calc(100vh - 65px); width: 100%; background: #121212; position: fixed; top: 65px; left: 0; z-index: 500; touch-action: none; }
-        #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+        #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; }
         
         /* 타임라인 전용 메모 미리보기 모달 */
         .tl-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
@@ -327,7 +327,7 @@
     let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false; 
     let timelineProcessedItems = []; 
     
-    // 모바일 전용 핀치 줌 변수
+    // 모바일/아이패드 핀치 줌 변수
     let tlStartTouchDist = 0;
     let tlStartScale = 0.1;
 
@@ -866,15 +866,16 @@
         }
     });
 
-    /* --- [🔥 모바일용 터치 드래그 & 멀티터치 핀치 줌 교정 엔진] --- */
+    /* --- [🔥 아이패드/모바일 완벽 호환 터치 드래그 & 멀티 터치 핀치 줌 교정 엔진] --- */
     tlCanvas.addEventListener('touchstart', (e) => {
+        // 아이패드 브라우저 고유의 터치 스크롤/제스처 차단
+        e.preventDefault(); 
         tlMoved = false;
+        
         if (e.touches.length === 1) {
-            // 한 손가락: 드래그 시작
             tlIsDragging = true;
             tlLastX = e.touches[0].clientX;
         } else if (e.touches.length === 2) {
-            // 두 손가락: 핀치 줌인/아웃 준비
             tlIsDragging = false; 
             tlStartTouchDist = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
@@ -882,40 +883,34 @@
             );
             tlStartScale = tlScale;
         }
-    }, { passive: true });
+    }, { passive: false }); // iOS 제스처 방지를 위해 passive false 지정
 
     tlCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // 아이패드 화면 위아래 튕김 및 좌우 페이지 전환 제스처 원천 차단
+        
         if (e.touches.length === 1 && tlIsDragging) {
-            // 한 손가락 이동 (좌우 스크롤 탐색)
             const currentX = e.touches[0].clientX;
             const deltaX = currentX - tlLastX;
-            if (Math.abs(deltaX) > 3) tlMoved = true;
+            if (Math.abs(deltaX) > 2) tlMoved = true;
             tlOffsetX += deltaX;
             tlLastX = currentX;
             drawTimeline();
-            
-            // 모바일 화면 자체가 위아래로 출렁이며 스크롤되는 버그 방지
-            if(e.cancelable) e.preventDefault();
         } else if (e.touches.length === 2) {
-            // 두 손가락 이동 (멀티터치 확대/축소)
             const currentDist = Math.hypot(
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
             if (tlStartTouchDist > 0) {
                 const ratio = currentDist / tlStartTouchDist;
-                // 모바일 환경에 적합한 스케일 감도 범위 지정
                 tlScale = Math.max(0.005, Math.min(tlStartScale * ratio, 0.2));
                 drawTimeline();
             }
-            if(e.cancelable) e.preventDefault();
         }
     }, { passive: false });
 
     tlCanvas.addEventListener('touchend', (e) => {
         if (tlIsDragging) {
             tlIsDragging = false;
-            // 움직임이 전혀 없었던 순수 터치 탭(Click)인 경우에만 팝업 오픈
             if (!tlMoved && e.changedTouches.length > 0) {
                 const rect = tlCanvas.getBoundingClientRect();
                 const clickX = e.changedTouches[0].clientX - rect.left;
@@ -924,11 +919,10 @@
             }
         }
         if (e.touches.length < 2) {
-            tlStartTouchDist = 0; // 핀치 데이터 초기화
+            tlStartTouchDist = 0;
         }
     }, { passive: true });
 
-    // PC/모바일 통합 클릭 판정 히트 박스 판독기
     function handleTimelineClick(clickX, clickY) {
         let clickedItem = null;
         for (let i = allData.length - 1; i >= 0; i--) {
