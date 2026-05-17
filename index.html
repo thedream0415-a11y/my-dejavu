@@ -123,12 +123,15 @@
         #timeline-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
         
         /* 타임라인 전용 메모 미리보기 모달 */
-        .tl-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .tl-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .tl-modal-content { background: var(--card); width: 90%; max-width: 650px; border-radius: 20px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: modalFade 0.25s ease-out; border: 1px solid var(--border); display: flex; flex-direction: column; }
         @keyframes modalFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .tl-modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .tl-modal-body { padding: 25px; line-height: 1.8; font-size: 1rem; color: var(--text); overflow-y: auto; white-space: pre-wrap; }
         .tl-modal-close { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+        .toolbar { display: flex; gap: 5px; margin-bottom: 10px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
+        .toolbar button { background: white; border: 1px solid var(--border); padding: 4px 10px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        #ed-content { min-height: 300px; border: 1px solid var(--border); padding: 15px; border-radius: 12px; outline: none; background: white; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -184,7 +187,7 @@
                 </div>
                 <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
             </div>
-            <div style="color:var(--text-light); font-weight:bold;">DAILY SCHEDULER</div>
+            <div style="color:var(--text-light); font-weight:bold;">DAILY SCHEDULER (SPATIAL POSITION MAP)</div>
         </div>
         <div class="diary-grid" style="margin-bottom: 10px;">
             <div class="weekday-header sun">SUN</div><div class="weekday-header">MON</div><div class="weekday-header">TUE</div>
@@ -297,6 +300,9 @@
         <div class="tt-color-dot" style="background: rgba(138, 171, 143, 0.24);" onclick="selectPopupColor('rgba(138, 171, 143, 0.24)')" title="초록색"></div>
         <div class="tt-color-dot" style="background: rgba(250, 198, 8, 0.22);" onclick="selectPopupColor('rgba(250, 198, 8, 0.22)')" title="노란색"></div>
     </div>
+    <div class="tt-color-row" style="margin-top:-2px;">
+         <button onclick="clearTimetableBlock()" style="width:120px; padding:3px; font-size:11px; background:#f1f2f6; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-weight:bold; color:var(--text-light);">선택 영역 지우기</button>
+    </div>
     <div class="tt-input-row">
         <input type="number" id="tt-duration-input" min="10" step="10" value="30" placeholder="분">
         <button onclick="applyTimetableBlock()">확인</button>
@@ -304,6 +310,25 @@
 </div>
 
 <script>
+    const API = "https://script.google.com/macros/s/AKfycby1PSqAkpK5-7BwhuEcR3wSDWesdnHxZMRGBIcITM3Xozqf7POCVTXzdBeM2TgoLrh-0g/exec";
+    
+    let allData = [], categories = ["미분류"], docHistory = [];
+    let currentMainMode = 'dejavu', sermonSortState = { field: 'date', asc: false };
+    
+    let currentYear = 2026, currentMonth = 5;
+    let diarySelectedPosKey = null; 
+    let diarySelectedLabelText = "";
+    
+    let activeSlotGlobalIdx = null; 
+    let selectedPopupColorVal = 'rgba(235, 94, 85, 0.2)';
+    let currentTimetableState = {}; 
+
+    const tlCanvas = document.getElementById('timeline-canvas'), tlCtx = tlCanvas.getContext('2d');
+    let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false; 
+    let timelineProcessedItems = []; 
+
+    const WEEK_DAYS_KO = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
     window.addEventListener('mousedown', (e) => {
         if (e.button === 3) { e.preventDefault(); goBack(); }
     });
@@ -314,21 +339,6 @@
             popup.style.display = 'none';
         }
     });
-
-    const API = "https://script.google.com/macros/s/AKfycbzNQHsEse51qAg83LUFoT_6sZRYQ5j-3NwZ_Dj4Q563jilZWnc_n_GY_fIMFRuoeUhmYw/exec";
-    let allData = [], categories = ["미분류"], docHistory = [];
-    let currentMainMode = 'dejavu', sermonSortState = { field: 'date', asc: false };
-    
-    let currentYear = 2026, currentMonth = 5;
-    let diarySelectedPosKey = null; 
-    
-    let activeSlotGlobalIdx = null; 
-    let selectedPopupColorVal = 'rgba(235, 94, 85, 0.2)';
-    let currentTimetableState = {}; 
-
-    const tlCanvas = document.getElementById('timeline-canvas'), tlCtx = tlCanvas.getContext('2d');
-    let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false; // 진입 시 최대로 넓게 보도록 tlScale을 0.1로 고정 설정
-    let timelineProcessedItems = []; 
 
     function postToGoogle(payload) {
         const formBody = new URLSearchParams();
@@ -347,8 +357,10 @@
             const data = await res.json();
             
             allData = data.fullData.map(d => {
-                const isSermonStr = String(d.isSermon).trim().toUpperCase();
-                return { ...d, category: d.category ? String(d.category).trim() : "미분류", isSermon: (isSermonStr === "TRUE" || isSermonStr === "Y") };
+                return { 
+                    ...d, 
+                    category: d.category ? String(d.category).trim() : "미분류"
+                };
             });
             categories = [...new Set(allData.map(d => d.category))].filter(c => c && c !== '설교노트' && c !== '다이어리');
             if(!categories.includes("미분류")) categories.unshift("미분류");
@@ -357,7 +369,6 @@
             if(currentMainMode === 'diary') renderCalendar();
         } catch(e) { 
             console.error("데이터 로드 실패:", e);
-            if (container) { container.innerHTML = '<div style="text-align:center; padding:50px; color:red; font-weight:bold;">구글 시트 데이터를 로드하지 못했습니다.</div>'; }
         }
     }
 
@@ -478,7 +489,7 @@
         postToGoogle(item); alert("저장되었습니다."); goHome();
     }
 
-    /* [다이어리 모드] */
+    /* [다이어리 모드 - 공간 좌표 매핑 시스템] */
     function renderCalendar() {
         const grid = document.getElementById('calendar-grid'); if(!grid) return; grid.innerHTML = '';
         document.getElementById('calendar-title').innerText = `${currentMonth}월`;
@@ -486,33 +497,42 @@
         const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
         const numDays = new Date(currentYear, currentMonth, 0).getDate();
         
+        // 1. 공백 칸 만들기
         for(let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div'); empty.className = 'day-box empty-day'; grid.appendChild(empty);
         }
         
+        // 2. 일별 칸 및 좌표 계산 생성
         for(let day = 1; day <= numDays; day++) {
             const box = document.createElement('div');
-            const totalBoxIndex = firstDay + day - 1;
-            const positionKey = `${currentYear}-${String(currentMonth).padStart(2,'0')}-pos${totalBoxIndex}`;
             
-            const dow = (firstDay + day - 1) % 7;
+            // 행/열 좌표 산출 로직 (1주차~6주차, 일요일~토요일 축)
+            const totalSlots = firstDay + day - 1;
+            const weekIndex = Math.floor(totalSlots / 7) + 1; // 1열~6열 개념
+            const dow = totalSlots % 7;                       // A행~G행 개념 (0=일, 1=월...)
+            const dayOfWeekKo = WEEK_DAYS_KO[dow];
+            
+            // 시트2의 A열(Title)에 완벽하게 저장/비교될 절대 안깨지는 공간 좌표 포맷 
+            // 예: "5월-2주-화요일"
+            const spatialPositionKey = `${currentMonth}월-${weekIndex}주-${dayOfWeekKo}`;
+            const dateLabelText = `${currentYear}년 ${currentMonth}월 ${day}일 (${dayOfWeekKo.charAt(0)})`;
+
             box.className = `day-box${dow === 0 ? ' sun' : (dow === 6 ? ' sat' : '')}`;
-            
-            box.onclick = () => openDiaryEditor(positionKey, `${currentYear}년 ${currentMonth}월 ${day}일 기록`);
+            box.onclick = () => openDiaryEditor(spatialPositionKey, dateLabelText);
             
             const numDiv = document.createElement('div'); numDiv.className = 'day-num'; numDiv.innerText = day; box.appendChild(numDiv);
             
-            const dayData = allData.find(d => d.category === '다이어리' && d.title === positionKey);
-            if(dayData && dayData.content) {
-                try {
-                    const parsed = JSON.parse(dayData.content);
-                    if(parsed.qt || parsed.todo) {
-                        const todoCont = document.createElement('div'); todoCont.className = 'mini-todo-container';
-                        if(parsed.qt) { const p1 = document.createElement('p'); p1.className = 'mini-todo-list'; p1.style.borderLeftColor = '#FAC608'; p1.innerText = `QT: ${parsed.qt}`; todoCont.appendChild(p1); }
-                        if(parsed.todo) { const p2 = document.createElement('p'); p2.className = 'mini-todo-list'; p2.style.borderLeftColor = '#2d3436'; p2.innerText = parsed.todo; todoCont.appendChild(p2); }
-                        box.appendChild(todoCont);
-                    }
-                } catch(e){}
+            // [핵심 교정] 시트2에서 받아온 공간좌표 키를 통해 데이터가 존재하는지 대조 및 랜더링
+            const dayData = allData.find(d => d.category === '다이어리' && String(d.title).trim() === spatialPositionKey);
+            if(dayData) {
+                const todoCont = document.createElement('div'); todoCont.className = 'mini-todo-container';
+                if(dayData.scripture) { 
+                    const p1 = document.createElement('p'); p1.className = 'mini-todo-list'; p1.style.borderLeftColor = '#FAC608'; p1.innerText = `QT: ${dayData.scripture}`; todoCont.appendChild(p1); 
+                }
+                if(dayData.content) { 
+                    const p2 = document.createElement('p'); p2.className = 'mini-todo-list'; p2.style.borderLeftColor = '#2d3436'; p2.innerText = dayData.content; todoCont.appendChild(p2); 
+                }
+                box.appendChild(todoCont);
             }
             grid.appendChild(box);
         }
@@ -521,25 +541,21 @@
 
     function openDiaryEditor(positionKey, labelText) {
         diarySelectedPosKey = positionKey;
+        diarySelectedLabelText = labelText;
         showSection('diary-editor-view');
-        document.getElementById('diary-date-label').innerText = labelText;
+        document.getElementById('diary-date-label').innerText = `${labelText} [${positionKey}]`;
         document.getElementById('diary-qt').innerHTML = '';
         document.getElementById('diary-todo').innerHTML = '';
         
         document.getElementById('tt-popup-layer').style.display = 'none';
         currentTimetableState = {}; 
         
-        const existing = allData.find(d => d.category === '다이어리' && d.title === positionKey);
+        const existing = allData.find(d => d.category === '다이어리' && String(d.title).trim() === positionKey);
         if(existing) {
-            if(existing.content) {
-                try {
-                    const parsed = JSON.parse(existing.content);
-                    document.getElementById('diary-qt').innerHTML = parsed.qt || '';
-                    document.getElementById('diary-todo').innerHTML = parsed.todo || '';
-                } catch(e) {}
-            }
-            if(existing.timetable) {
-                try { currentTimetableState = JSON.parse(existing.timetable); } catch(e) { currentTimetableState = {}; }
+            document.getElementById('diary-qt').innerHTML = existing.scripture || '';
+            document.getElementById('diary-todo').innerHTML = existing.content || '';
+            if(existing.preacher) {
+                try { currentTimetableState = JSON.parse(existing.preacher); } catch(e) { currentTimetableState = {}; }
             }
         }
         renderTimetableBlocks();
@@ -549,7 +565,8 @@
         const cont = document.getElementById('diary-timetable-container'); if(!cont) return;
         cont.innerHTML = '';
         
-        for(let h=0; h<24; h++) {
+        for(let i=0; i<24; i++) {
+            let h = (4 + i) % 24; 
             const row = document.createElement('div'); row.className = 'time-row';
             const label = document.createElement('div'); label.className = 'time-label'; label.innerText = `${String(h).padStart(2,'0')}:00`;
             row.appendChild(label);
@@ -566,7 +583,6 @@
                     if(e.target.classList.contains('slot-input')) return; 
                     openTimetablePopup(slot, globalIdx, e);
                 };
-                
                 content.appendChild(slot);
             }
             row.appendChild(content); cont.appendChild(row);
@@ -581,7 +597,7 @@
         popup.style.display = 'flex';
         
         const rect = targetEl.getBoundingClientRect();
-        popup.style.top = `${window.scrollY + rect.top - 58}px`;
+        popup.style.top = `${window.scrollY + rect.top - 75}px`; 
         popup.style.left = `${window.scrollX + rect.left - 30}px`;
         
         document.querySelectorAll('.tt-color-dot').forEach(dot => {
@@ -589,7 +605,6 @@
             const targetStr = selectedPopupColorVal.replace(/\s/g, '');
             dot.style.border = (bgStr === targetStr) ? '2px solid #2d3436' : '1px solid rgba(0,0,0,0.15)';
         });
-        
         document.getElementById('tt-duration-input').focus();
     }
 
@@ -605,13 +620,10 @@
     function applyTimetableBlock() {
         const duration = parseInt(document.getElementById('tt-duration-input').value) || 30;
         const totalSlotsNeeded = Math.ceil(duration / 10); 
-        
         if(activeSlotGlobalIdx === null) return;
         
         for(let i = 0; i < totalSlotsNeeded; i++) {
-            const currentIdx = activeSlotGlobalIdx + i;
-            if(currentIdx >= 144) break; 
-            
+            const currentIdx = (activeSlotGlobalIdx + i) % 144; 
             currentTimetableState[currentIdx] = {
                 color: selectedPopupColorVal,
                 text: currentTimetableState[currentIdx]?.text || "",
@@ -619,7 +631,6 @@
                 span: totalSlotsNeeded
             };
         }
-        
         document.getElementById('tt-popup-layer').style.display = 'none';
         renderTimetableBlocks();
         
@@ -629,20 +640,35 @@
         }, 50);
     }
 
+    function clearTimetableBlock() {
+        if(activeSlotGlobalIdx === null) return;
+        const targetBlock = currentTimetableState[activeSlotGlobalIdx];
+        
+        if(targetBlock) {
+            const masterIdx = targetBlock.isMaster ? activeSlotGlobalIdx : Object.keys(currentTimetableState).find(k => currentTimetableState[k].isMaster && (activeSlotGlobalIdx - k < currentTimetableState[k].span));
+            const baseIdx = masterIdx ? parseInt(masterIdx) : activeSlotGlobalIdx;
+            const spanCount = currentTimetableState[baseIdx]?.span || 1;
+            for(let i=0; i<spanCount; i++) {
+                delete currentTimetableState[(baseIdx + i) % 144];
+            }
+        } else {
+            delete currentTimetableState[activeSlotGlobalIdx];
+        }
+        document.getElementById('tt-popup-layer').style.display = 'none';
+        renderTimetableBlocks();
+    }
+
     function renderTimetableBlocks() {
         buildTimetableStructure(); 
-        
         for(let idx in currentTimetableState) {
             const block = currentTimetableState[idx];
             if(!block) continue;
-            
             const slotEl = document.querySelector(`.slot-10min[data-global-idx="${idx}"]`);
             if(!slotEl) continue;
             
             slotEl.style.backgroundColor = block.color;
-            
             if(block.isMaster) {
-                slotEl.innerHTML = `<input type="text" class="slot-input" value="${block.text || ''}" placeholder="업무 내용 입력" oninput="updateSlotText(${idx}, this.value)">`;
+                slotEl.innerHTML = `<input type="text" class="slot-input" value="${block.text || ''}" placeholder="입력" oninput="updateSlotText(${idx}, this.value)">`;
             } else {
                 slotEl.innerHTML = `<input type="text" class="slot-input" style="opacity:0.3;" value="..." disabled>`;
             }
@@ -652,29 +678,40 @@
     function updateSlotText(masterIdx, value) {
         if(!currentTimetableState[masterIdx]) return;
         currentTimetableState[masterIdx].text = value;
-        
         const spanCount = currentTimetableState[masterIdx].span || 1;
         for(let i=1; i<spanCount; i++) {
-            const childIdx = masterIdx + i;
-            if(currentTimetableState[childIdx]) {
-                currentTimetableState[childIdx].text = value;
-            }
+            const childIdx = (masterIdx + i) % 144;
+            if(currentTimetableState[childIdx]) currentTimetableState[childIdx].text = value;
         }
     }
 
     function saveDiary() {
         if(!diarySelectedPosKey) return;
-        let item = allData.find(d => d.category === '다이어리' && d.title === diarySelectedPosKey);
-        if(!item) { item = { title: diarySelectedPosKey, category: '다이어리', isSermon: false }; allData.push(item); }
         
         const qtText = document.getElementById('diary-qt').innerText.trim();
         const todoText = document.getElementById('diary-todo').innerText.trim();
+        const timetableJson = JSON.stringify(currentTimetableState);
         
-        item.content = JSON.stringify({ qt: qtText, todo: todoText });
-        item.timetable = JSON.stringify(currentTimetableState); 
+        let item = allData.find(d => d.category === '다이어리' && d.title === diarySelectedPosKey);
+        if(!item) { 
+            item = { title: diarySelectedPosKey, category: '다이어리', isSermon: false }; 
+            allData.push(item); 
+        }
         
-        postToGoogle(item);
-        alert("다이어리와 타임테이블 일정이 안전하게 저장되었습니다.");
+        item.scripture = qtText; 
+        item.content = todoText; 
+        item.preacher = timetableJson; 
+
+        const payload = {
+            title: diarySelectedPosKey, // 절대 안깨지는 고유 공간 좌표값 전송 (예: "5월-2주-화요일")
+            category: "다이어리",
+            scripture: qtText,          
+            content: todoText,          
+            preacher: timetableJson     
+        };
+        
+        postToGoogle(payload);
+        alert("다이어리 좌표 데이터가 안전하게 구글 시트2에 저장되었습니다!");
         goHome();
     }
 
@@ -686,35 +723,20 @@
         calculateTimelineLayout(); 
         drawTimeline(); 
     }
-    function closeTimelineView() {
-        document.getElementById('timeline-view').style.display = 'none';
-        goHome();
-    }
-    function resizeCanvas() { 
-        tlCanvas.width = window.innerWidth; 
-        tlCanvas.height = window.innerHeight - 65; 
-    }
+    function closeTimelineView() { document.getElementById('timeline-view').style.display = 'none'; goHome(); }
+    function resizeCanvas() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 65; }
 
     function calculateTimelineLayout() {
         const searchQuery = document.getElementById('tl-search').value.toLowerCase();
         let sourceItems = allData.filter(d => !d.isSermon && d.year && d.category !== '다이어리');
         if(searchQuery) sourceItems = sourceItems.filter(d => d.title.toLowerCase().includes(searchQuery) || d.year.includes(searchQuery));
         
-        sourceItems.sort((a, b) => {
-            let ya = parseInt(a.year) || 0, yb = parseInt(b.year) || 0;
-            return ya - yb;
-        });
-
-        const baseYear = 1900;
-        const mockYearWidth = 80; 
+        sourceItems.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
+        const baseYear = 1900, mockYearWidth = 80; 
         
         timelineProcessedItems = sourceItems.map(d => {
-            let startY = parseInt(d.year);
-            let endY = startY;
-            if(d.year.includes('~')) {
-                const p = d.year.split('~');
-                startY = parseInt(p[0]); endY = parseInt(p[1]);
-            }
+            let startY = parseInt(d.year), endY = startY;
+            if(d.year.includes('~')) { const p = d.year.split('~'); startY = parseInt(p[0]); endY = parseInt(p[1]); }
             return { ref: d, startYear: isNaN(startY)?1900:startY, endYear: isNaN(endY)?1900:endY, isEvent: d.category === '사건' };
         });
 
@@ -725,7 +747,6 @@
             tlCtx.font = "bold 12px Pretendard";
             const text = `[${item.ref.year}] ${item.ref.title}`;
             const textWidth = tlCtx.measureText(text).width + 24;
-            
             const calcStartX = (item.startYear - baseYear) * mockYearWidth;
             const calcEndX = item.ref.year.includes('~') ? (item.endYear - baseYear) * mockYearWidth : calcStartX + textWidth;
             const blockWidth = item.ref.year.includes('~') ? Math.max(calcEndX - calcStartX, textWidth) : textWidth;
@@ -735,19 +756,13 @@
                 let hasCollision = false;
                 for (let prev of placementList) {
                     if (prev.level === level) {
-                        if (!(calcStartX + blockWidth + 15 < prev.x || calcStartX > prev.x + prev.w + 15)) {
-                            hasCollision = true;
-                            break;
-                        }
+                        if (!(calcStartX + blockWidth + 15 < prev.x || calcStartX > prev.x + prev.w + 15)) { hasCollision = true; break; }
                     }
                 }
                 if (!hasCollision) break;
-                level++;
-                if (level > 40) break; 
+                level++; if (level > 40) break; 
             }
-
-            item.level = level;
-            placementList.push({ x: calcStartX, w: blockWidth, level: level });
+            item.level = level; placementList.push({ x: calcStartX, w: blockWidth, level: level });
         });
     }
 
@@ -755,39 +770,26 @@
         if(document.getElementById('timeline-view').style.display === 'none') return;
         tlCtx.clearRect(0, 0, tlCanvas.width, tlCanvas.height);
         
-        const baseYear = 1900; 
-        const yearWidth = 80 * tlScale;
-        const xAxisY = tlCanvas.height - 120;
-        
-        const startYear = Math.floor(( -tlOffsetX ) / yearWidth) + baseYear - 5;
+        const baseYear = 1900, yearWidth = 80 * tlScale, xAxisY = tlCanvas.height - 120;
+        const startYear = Math.floor((-tlOffsetX) / yearWidth) + baseYear - 5;
         const endYear = Math.ceil((tlCanvas.width - tlOffsetX) / yearWidth) + baseYear + 5;
         
         for(let y = startYear; y <= endYear; y++) {
             const xStr = (y - baseYear) * yearWidth + tlOffsetX;
-            
             if(y % 100 === 0) {
-                tlCtx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-                tlCtx.lineWidth = 2.5;
+                tlCtx.strokeStyle = "rgba(255, 255, 255, 0.22)"; tlCtx.lineWidth = 2.5;
                 tlCtx.beginPath(); tlCtx.moveTo(xStr, 0); tlCtx.lineTo(xStr, xAxisY + 40); tlCtx.stroke();
-                
-                tlCtx.fillStyle = "#FAC608"; 
-                tlCtx.font = "black 13px Pretendard"; 
-                tlCtx.textAlign = "center"; 
+                tlCtx.fillStyle = "#FAC608"; tlCtx.font = "black 13px Pretendard"; tlCtx.textAlign = "center"; 
                 tlCtx.fillText(String(y) + "년", xStr, xAxisY + 30);
             } else if(y % 10 === 0) {
-                tlCtx.strokeStyle = "rgba(255, 255, 255, 0.06)";
-                tlCtx.lineWidth = 0.8;
+                tlCtx.strokeStyle = "rgba(255, 255, 255, 0.06)"; tlCtx.lineWidth = 0.8;
                 tlCtx.beginPath(); tlCtx.moveTo(xStr, 0); tlCtx.lineTo(xStr, xAxisY + 15); tlCtx.stroke();
-                
-                tlCtx.fillStyle = "#888"; 
-                tlCtx.font = "normal 11px Pretendard"; 
-                tlCtx.textAlign = "center"; 
+                tlCtx.fillStyle = "#888"; tlCtx.font = "normal 11px Pretendard"; tlCtx.textAlign = "center"; 
                 tlCtx.fillText(String(y), xStr, xAxisY + 18);
             }
         }
         
-        tlCtx.strokeStyle = "#444";
-        tlCtx.lineWidth = 3; 
+        tlCtx.strokeStyle = "#444"; tlCtx.lineWidth = 3; 
         tlCtx.beginPath(); tlCtx.moveTo(0, xAxisY); tlCtx.lineTo(tlCanvas.width, xAxisY); tlCtx.stroke();
         
         timelineProcessedItems.forEach(item => {
@@ -796,24 +798,15 @@
             const endX = (item.endYear - baseYear) * yearWidth + tlOffsetX;
             const width = Math.max(endX - startX, 20);
             
-            tlCtx.fillStyle = "rgba(118, 186, 201, 0.08)";
-            tlCtx.fillRect(startX, 10, width, xAxisY - 10);
-            
-            tlCtx.strokeStyle = "rgba(118, 186, 201, 0.2)";
-            tlCtx.lineWidth = 1;
-            tlCtx.strokeRect(startX, 10, width, xAxisY - 10);
-            
-            tlCtx.fillStyle = "rgba(118, 186, 201, 0.7)";
-            tlCtx.font = "bold 11px Pretendard";
-            tlCtx.textAlign = "left";
+            tlCtx.fillStyle = "rgba(118, 186, 201, 0.08)"; tlCtx.fillRect(startX, 10, width, xAxisY - 10);
+            tlCtx.strokeStyle = "rgba(118, 186, 201, 0.2)"; tlCtx.lineWidth = 1; tlCtx.strokeRect(startX, 10, width, xAxisY - 10);
+            tlCtx.fillStyle = "rgba(118, 186, 201, 0.7)"; tlCtx.font = "bold 11px Pretendard"; tlCtx.textAlign = "left";
             tlCtx.fillText(`🚩 [사건] ${item.ref.title} (${item.ref.year})`, startX + 6, 25);
-            
             item.ref._tlPos = { x: startX, y: 10, w: width, h: xAxisY - 10 };
         });
         
         timelineProcessedItems.forEach(item => {
             if (item.isEvent) return;
-            
             const startX = (item.startYear - baseYear) * yearWidth + tlOffsetX;
             const text = `[${item.ref.year}] ${item.ref.title}`;
             
@@ -821,9 +814,7 @@
             const textWidth = tlCtx.measureText(text).width + 24;
             const endX = item.ref.year.includes('~') ? (item.endYear - baseYear) * yearWidth + tlOffsetX : startX + textWidth;
             const blockWidth = item.ref.year.includes('~') ? Math.max(endX - startX, textWidth) : textWidth;
-            const blockHeight = 36;
-            
-            const targetY = xAxisY - 50 - (item.level * 46);
+            const blockHeight = 36, targetY = xAxisY - 50 - (item.level * 46);
             
             tlCtx.fillStyle = "rgba(250, 198, 8, 0.9)";
             tlCtx.beginPath();
@@ -831,56 +822,38 @@
             else tlCtx.fillRect(startX, targetY, blockWidth, blockHeight);
             tlCtx.fill();
             
-            tlCtx.fillStyle = "#1e272e"; 
-            tlCtx.textAlign = "left"; 
-            tlCtx.fillText(text, startX + 12, targetY + 22);
-            
+            tlCtx.fillStyle = "#1e272e"; tlCtx.textAlign = "left"; tlCtx.fillText(text, startX + 12, targetY + 22);
             item.ref._tlPos = { x: startX, y: targetY, w: blockWidth, h: blockHeight };
         });
     }
 
     function openTimelineModal(item) {
         document.getElementById('tl-modal-title').innerText = item.title;
-        
         let metaHtml = `<div style="font-size:0.85rem; color:var(--text-light); font-weight:bold; margin-bottom:15px;">카테고리: ${item.category} | 시대/연도: ${item.year}</div>`;
         let contentHtml = item.content;
         
         allData.forEach(d => {
             if (d.title !== item.title && contentHtml.includes(d.title)) {
-                contentHtml = contentHtml.replace(
-                    new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g'), 
-                    `<span class="auto-link" style="color:#0984e3; text-decoration:underline;" onclick="closeTimelineModal(); switchMainMode('dejavu'); loadDoc('${d.title}');">${d.title}</span>`
-                );
+                contentHtml = contentHtml.replace(new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g'), `<span class="auto-link" style="color:#0984e3; text-decoration:underline;" onclick="closeTimelineModal(); switchMainMode('dejavu'); loadDoc('${d.title}');">${d.title}</span>`);
             }
         });
-        
         document.getElementById('tl-modal-body').innerHTML = metaHtml + contentHtml;
         document.getElementById('timeline-modal').style.display = 'flex';
     }
     
-    function closeTimelineModal() {
-        document.getElementById('timeline-modal').style.display = 'none';
-    }
+    function closeTimelineModal() { document.getElementById('timeline-modal').style.display = 'none'; }
 
-    /* 휠 스케일 시스템: 기존 최대 축소선(0.1)을 마지노선(최대 확대)으로 삼고, 더 넓게 조망(0.01)할 수 있도록 한계 도메인 변경 */
     tlCanvas.addEventListener('wheel', (e) => { 
         e.preventDefault(); 
         tlScale = Math.max(0.01, Math.min(tlScale * (e.deltaY > 0 ? 0.9 : 1.1), 0.1)); 
         drawTimeline(); 
     }, { passive: false });
 
-    tlCanvas.addEventListener('mousedown', (e) => { 
-        tlIsDragging = true; 
-        tlMoved = false; 
-        tlLastX = e.clientX; 
-    });
-
+    tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
     window.addEventListener('mousemove', (e) => { 
         if(tlIsDragging) { 
             if(Math.abs(e.clientX - tlLastX) > 4) tlMoved = true; 
-            tlOffsetX += (e.clientX - tlLastX); 
-            tlLastX = e.clientX; 
-            drawTimeline(); 
+            tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); 
         } 
     });
 
@@ -889,26 +862,18 @@
             tlIsDragging = false;
             if(!tlMoved) {
                 const rect = tlCanvas.getBoundingClientRect(); 
-                const clickX = e.clientX - rect.left; 
-                const clickY = e.clientY - rect.top;
-                
+                const clickX = e.clientX - rect.left, clickY = e.clientY - rect.top;
                 let clickedItem = null;
                 for (let i = allData.length - 1; i >= 0; i--) {
                     let d = allData[i];
-                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) {
-                        clickedItem = d;
-                        break;
-                    }
+                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) { clickedItem = d; break; }
                 }
-                if(clickedItem) { 
-                    openTimelineModal(clickedItem); 
-                }
+                if(clickedItem) openTimelineModal(clickedItem);
             }
         }
     });
 
     window.addEventListener('resize', () => { resizeCanvas(); drawTimeline(); });
-
     init();
 </script>
 </body>
