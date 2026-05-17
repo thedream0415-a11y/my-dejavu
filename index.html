@@ -326,6 +326,10 @@
     const tlCanvas = document.getElementById('timeline-canvas'), tlCtx = tlCanvas.getContext('2d');
     let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false; 
     let timelineProcessedItems = []; 
+    
+    // 모바일 전용 핀치 줌 변수
+    let tlStartTouchDist = 0;
+    let tlStartScale = 0.1;
 
     const WEEK_DAYS_KO = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
@@ -422,7 +426,7 @@
         container.innerHTML = categories.map(cat => {
             const catItems = dejavuData.filter(d => d.category === cat);
             if (catItems.length === 0 && cat !== "미분류") return "";
-            return `<div class="category-group" ondrop="drop(event, '${cat}')" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');"><div class="category-title">${cat} <span style="cursor:pointer; font-size:0.85rem;" onclick="renameCategory('${cat}')">✏️</span></div><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:15px;">${catItems.map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}</div></div>`;
+            return `<div class="category-group" ondrop="drop(event, '${cat}')" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.currentTarget.classList.remove('drag-over');"><div class="category-title">${cat} <span style="cursor:pointer; font-size:0.85rem;" onclick="renameCategory('${cat}')">✏️</span></div><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:15px;">${catItems.map(d => `<div class="db-card" draggable="true" ondragstart="drag(event, '${d.title}')" onclick="loadDoc('${d.title}')">${d.title}</div>`).join('')}</div></div>`;
         }).join('');
     }
 
@@ -497,23 +501,18 @@
         const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
         const numDays = new Date(currentYear, currentMonth, 0).getDate();
         
-        // 1. 공백 칸 만들기
         for(let i = 0; i < firstDay; i++) {
             const empty = document.createElement('div'); empty.className = 'day-box empty-day'; grid.appendChild(empty);
         }
         
-        // 2. 일별 칸 및 좌표 계산 생성
         for(let day = 1; day <= numDays; day++) {
             const box = document.createElement('div');
             
-            // 행/열 좌표 산출 로직 (1주차~6주차, 일요일~토요일 축)
             const totalSlots = firstDay + day - 1;
-            const weekIndex = Math.floor(totalSlots / 7) + 1; // 1열~6열 개념
-            const dow = totalSlots % 7;                       // A행~G행 개념 (0=일, 1=월...)
+            const weekIndex = Math.floor(totalSlots / 7) + 1; 
+            const dow = totalSlots % 7;                       
             const dayOfWeekKo = WEEK_DAYS_KO[dow];
             
-            // 시트2의 A열(Title)에 완벽하게 저장/비교될 절대 안깨지는 공간 좌표 포맷 
-            // 예: "5월-2주-화요일"
             const spatialPositionKey = `${currentMonth}월-${weekIndex}주-${dayOfWeekKo}`;
             const dateLabelText = `${currentYear}년 ${currentMonth}월 ${day}일 (${dayOfWeekKo.charAt(0)})`;
 
@@ -522,7 +521,6 @@
             
             const numDiv = document.createElement('div'); numDiv.className = 'day-num'; numDiv.innerText = day; box.appendChild(numDiv);
             
-            // [핵심 교정] 시트2에서 받아온 공간좌표 키를 통해 데이터가 존재하는지 대조 및 랜더링
             const dayData = allData.find(d => d.category === '다이어리' && String(d.title).trim() === spatialPositionKey);
             if(dayData) {
                 const todoCont = document.createElement('div'); todoCont.className = 'mini-todo-container';
@@ -703,7 +701,7 @@
         item.preacher = timetableJson; 
 
         const payload = {
-            title: diarySelectedPosKey, // 절대 안깨지는 고유 공간 좌표값 전송 (예: "5월-2주-화요일")
+            title: diarySelectedPosKey, 
             category: "다이어리",
             scripture: qtText,          
             content: todoText,          
@@ -843,9 +841,10 @@
     
     function closeTimelineModal() { document.getElementById('timeline-modal').style.display = 'none'; }
 
+    /* --- [PC용 마우스&휠 제어 이벤트] --- */
     tlCanvas.addEventListener('wheel', (e) => { 
         e.preventDefault(); 
-        tlScale = Math.max(0.01, Math.min(tlScale * (e.deltaY > 0 ? 0.9 : 1.1), 0.1)); 
+        tlScale = Math.max(0.005, Math.min(tlScale * (e.deltaY > 0 ? 0.9 : 1.1), 0.2)); 
         drawTimeline(); 
     }, { passive: false });
 
@@ -856,22 +855,91 @@
             tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); 
         } 
     });
-
     window.addEventListener('mouseup', (e) => {
         if(tlIsDragging) {
             tlIsDragging = false;
             if(!tlMoved) {
                 const rect = tlCanvas.getBoundingClientRect(); 
                 const clickX = e.clientX - rect.left, clickY = e.clientY - rect.top;
-                let clickedItem = null;
-                for (let i = allData.length - 1; i >= 0; i--) {
-                    let d = allData[i];
-                    if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) { clickedItem = d; break; }
-                }
-                if(clickedItem) openTimelineModal(clickedItem);
+                handleTimelineClick(clickX, clickY);
             }
         }
     });
+
+    /* --- [🔥 모바일용 터치 드래그 & 멀티터치 핀치 줌 교정 엔진] --- */
+    tlCanvas.addEventListener('touchstart', (e) => {
+        tlMoved = false;
+        if (e.touches.length === 1) {
+            // 한 손가락: 드래그 시작
+            tlIsDragging = true;
+            tlLastX = e.touches[0].clientX;
+        } else if (e.touches.length === 2) {
+            // 두 손가락: 핀치 줌인/아웃 준비
+            tlIsDragging = false; 
+            tlStartTouchDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            tlStartScale = tlScale;
+        }
+    }, { passive: true });
+
+    tlCanvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && tlIsDragging) {
+            // 한 손가락 이동 (좌우 스크롤 탐색)
+            const currentX = e.touches[0].clientX;
+            const deltaX = currentX - tlLastX;
+            if (Math.abs(deltaX) > 3) tlMoved = true;
+            tlOffsetX += deltaX;
+            tlLastX = currentX;
+            drawTimeline();
+            
+            // 모바일 화면 자체가 위아래로 출렁이며 스크롤되는 버그 방지
+            if(e.cancelable) e.preventDefault();
+        } else if (e.touches.length === 2) {
+            // 두 손가락 이동 (멀티터치 확대/축소)
+            const currentDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (tlStartTouchDist > 0) {
+                const ratio = currentDist / tlStartTouchDist;
+                // 모바일 환경에 적합한 스케일 감도 범위 지정
+                tlScale = Math.max(0.005, Math.min(tlStartScale * ratio, 0.2));
+                drawTimeline();
+            }
+            if(e.cancelable) e.preventDefault();
+        }
+    }, { passive: false });
+
+    tlCanvas.addEventListener('touchend', (e) => {
+        if (tlIsDragging) {
+            tlIsDragging = false;
+            // 움직임이 전혀 없었던 순수 터치 탭(Click)인 경우에만 팝업 오픈
+            if (!tlMoved && e.changedTouches.length > 0) {
+                const rect = tlCanvas.getBoundingClientRect();
+                const clickX = e.changedTouches[0].clientX - rect.left;
+                const clickY = e.changedTouches[0].clientY - rect.top;
+                handleTimelineClick(clickX, clickY);
+            }
+        }
+        if (e.touches.length < 2) {
+            tlStartTouchDist = 0; // 핀치 데이터 초기화
+        }
+    }, { passive: true });
+
+    // PC/모바일 통합 클릭 판정 히트 박스 판독기
+    function handleTimelineClick(clickX, clickY) {
+        let clickedItem = null;
+        for (let i = allData.length - 1; i >= 0; i--) {
+            let d = allData[i];
+            if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) { 
+                clickedItem = d; 
+                break; 
+            }
+        }
+        if(clickedItem) openTimelineModal(clickedItem);
+    }
 
     window.addEventListener('resize', () => { resizeCanvas(); drawTimeline(); });
     init();
