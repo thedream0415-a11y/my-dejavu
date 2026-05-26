@@ -30,11 +30,13 @@
         }
         .logo-area { display: flex; align-items: center; gap: 15px; }
         .logo { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; cursor: pointer; color: var(--accent); }
-        .mode-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 25px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .mode-btn { background: rgba(255,255,255,0.1); border: none; color: white;
+            padding: 8px 16px; border-radius: 25px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
         .mode-btn.active { background: var(--accent); color: var(--primary); }
         .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.2); }
         .nav-btns { display: flex; gap: 10px; }
-        .btn-main { background: var(--accent); color: var(--primary); border: none; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 4px 0px var(--accent-hover); }
+        .btn-main { background: var(--accent); color: var(--primary); border: none; padding: 10px 20px;
+            border-radius: 30px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 4px 0px var(--accent-hover); }
         .btn-main:active { transform: translateY(3px); box-shadow: none; }
 
         /* Layout & Sections */
@@ -52,11 +54,13 @@
         .category-group.drag-over { border-color: var(--accent) !important; background: rgba(250, 198, 8, 0.05) !important; }
         .category-title { font-size: 1rem; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .category-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
-        .side-panel { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.03); max-height: 80vh; overflow-y: auto; position: sticky; top: 85px; }
+        .side-panel { background: var(--card); padding: 15px; border-radius: 15px;
+            border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.03); max-height: 80vh; overflow-y: auto; position: sticky; top: 85px; }
         .side-panel h4 { margin: 0 0 12px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
         .link-item { padding: 8px; font-size: 0.85rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; color: var(--text); }
         .link-item:hover { color: var(--accent); background: rgba(0,0,0,0.02); }
-        .db-card { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text); user-select: none; }
+        .db-card { background: var(--bg); padding: 15px; border-radius: 12px; text-align: center;
+            border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text); user-select: none; }
         .db-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 6px 15px rgba(250, 198, 8, 0.15); }
 
         /* Tables & Grid */
@@ -75,7 +79,8 @@
         .weekday-header.sun { color: var(--sun-color); }
         .weekday-header.sat { color: var(--sat-color); }
         
-        .day-box { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; transition: 0.2s; box-sizing: border-box; height: 125px; overflow-y: auto; }
+        .day-box { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px;
+            transition: 0.2s; box-sizing: border-box; height: 125px; overflow-y: auto; }
         .day-box::-webkit-scrollbar { width: 3px; }
         .day-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
         
@@ -86,7 +91,8 @@
         .day-box.sat .day-num { color: var(--sat-color); opacity: 0.6; }
         
         .mini-todo-container { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 2px; }
-        .mini-todo-list { font-size: 0.72rem; line-height: 1.4; color: var(--text-light); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; padding: 1px 0 1px 6px; border-left: 2px solid var(--accent); width: 100%; box-sizing: border-box; display: block; }
+        .mini-todo-list { font-size: 0.72rem; line-height: 1.4; color: var(--text-light); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; padding: 1px 0 1px 6px;
+            border-left: 2px solid var(--accent); width: 100%; box-sizing: border-box; display: block; }
 
         /* Editor Boxes */
         .main-doc { background: var(--card); padding: 40px; border-radius: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); color: var(--text); min-height: 50vh; }
@@ -142,6 +148,7 @@
         <button id="mode-dejavu" class="mode-btn active" onclick="switchMainMode('dejavu')">지식</button>
         <button id="mode-sermon" class="mode-btn" onclick="switchMainMode('sermon')">설교</button>
         <button id="mode-diary" class="mode-btn" onclick="switchMainMode('diary')">다이어리</button>
+        <button id="mode-bible" class="mode-btn" onclick="switchMainMode('bible')">📖 성경</button>
     </div>
     <div class="nav-btns">
         <button class="btn-main" style="background:#3d3d3d; color:white; box-shadow: 0 4px 0 #000;" onclick="toggleDarkMode()">🌓</button>
@@ -217,6 +224,30 @@
                 <div style="padding:20px; background:var(--primary); color:#fff; font-weight:900; font-size:0.9rem; letter-spacing:1px;">TIME TABLE</div>
                 <div id="diary-timetable-container"></div>
             </div>
+        </div>
+    </section>
+
+    <section id="bible-view" class="section">
+        <div style="display:flex; gap:12px; margin-bottom:20px; background:var(--card); padding:15px; border-radius:12px; box-shadow:var(--shadow); align-items:center;">
+            <span style="font-weight:bold; color:var(--text);">📖 성경 선택:</span>
+            <select id="bible-book-select" onchange="onBibleBookChange()" style="padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:16px; flex:2; outline:none;"></select>
+            <select id="bible-chapter-select" onchange="renderBibleVerses()" style="padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:16px; flex:1; outline:none;"></select>
+        </div>
+
+        <div style="background:var(--card); padding:20px; border-radius:12px; box-shadow:var(--shadow); max-height:75vh; overflow-y:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border); color:var(--text-light); font-size:0.9rem;">
+                        <th style="padding:10px; width:60px;">절</th>
+                        <th style="padding:10px; width:30%;">개역개정</th>
+                        <th style="padding:10px; width:30%;">표준새번역</th>
+                        <th style="padding:10px; width:35%;">영어 성경</th>
+                        <th style="padding:10px; width:70px; text-align:center;">기능</th>
+                    </tr>
+                </thead>
+                <tbody id="bible-verses-body">
+                    </tbody>
+            </table>
         </div>
     </section>
 
@@ -310,7 +341,8 @@
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycby1PSqAkpK5-7BwhuEcR3wSDWesdnHxZMRGBIcITM3Xozqf7POCVTXzdBeM2TgoLrh-0g/exec";
+    // 입력받은 새로운 가스 주소 연동
+    const API = "https://script.google.com/macros/s/AKfycbwf7zm1T-YVAl0rdQMu8gAUadI0pTl9Xw0w7jUWrUSgpxJ6WntnJ5eYdszR58sg5fvURw/exec";
     
     let allData = [], categories = ["미분류"], docHistory = [];
     let currentMainMode = 'dejavu', sermonSortState = { field: 'date', asc: false };
@@ -324,26 +356,52 @@
     let currentTimetableState = {}; 
 
     const tlCanvas = document.getElementById('timeline-canvas'), tlCtx = tlCanvas.getContext('2d');
-    let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false; 
+    let tlOffsetX = 0, tlScale = 0.1, tlIsDragging = false, tlLastX = 0, tlMoved = false;
     let timelineProcessedItems = []; 
     
-    // 모바일/아이패드 핀치 줌 변수
     let tlStartTouchDist = 0;
     let tlStartScale = 0.1;
-
     const WEEK_DAYS_KO = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
+    const BIBLE_BOOKS = [
+        "창세기","출애굽기","레위기","민수기","신명기","여호수아","사사기","룻기","사무엘상","사무엘하",
+        "열왕기상","열왕기하","역대기상","역대기하","에스라","느헤미야","에스더","욥기","시편","잠언",
+        "전도서","아가","이사야","예레미야","예레미야애가","에스겔","다니엘","호세아","요엘","아모스",
+        "오바디야","요나","미가","나훔","하박국","스바냐","학개","스가랴","말라기",
+        "마태복음","마가복음","누가복음","요한복음","사도행전","로마서","고린도전서","고린도후서",
+        "갈라디아서","에베소서","빌립보서","골로새서","데살로니가전서","데살로니가후서","디모데전서",
+        "디모데후서","디도서","빌레몬서","히브리서","야고보서","베드로전서","베드로후서",
+        "요한1서","요한2서","요한3서","유다서","요한계시록"
+    ];
+    let bibleDataArray = [];
+
+    const BIBLE_SHORT_MAP = {
+        "창": "창세기", "출": "출애굽기", "레": "레위기", "민": "민수기", "신": "신명기",
+        "수": "여호수아", "삿": "사사기", "룻": "룻기", "삼상": "사무엘상", "삼하": "사무엘하",
+        "왕상": "열왕기상", "왕하": "열왕기하", "대상": "역대기상", "대하": "역대기하",
+        "스": "에스라", "느": "느헤미야", "에": "에스더", "욥기": "욥기", "욥": "욥기", "시": "시편",
+        "잠": "잠언", "전": "전도서", "아": "아가", "사": "이사야", "예": "예레미야",
+        "애": "예레미야애가", "겔": "에스겔", "단": "다니엘", "호": "호세아", "요엘": "요엘",
+        "암": "아모스", "오": "오바디야", "요나": "요나", "미": "미가", "나": "나훔",
+        "하": "하박국", "습": "스바냐", "학": "학개", "스가": "스가랴", "말": "말라기",
+        "마": "마태복음", "막": "마가복음", "누": "누가복음", "요": "요한복음", "행": "사도행전",
+        "롬": "로마서", "고전": "고린도전서", "고후": "고린도후서", "갈": "갈라디아서",
+        "엡": "에베소서", "빌 flip": "빌립보서", "빌": "빌립보서", "골": "골로새서", "살전": "데살로니가전서",
+        "살후": "데살로니가후서", "딤전": "디모데전서", "딤후": "디모데후서", "딛": "디도서",
+        "몬": "빌레몬서", "히 들": "히브리서", "히": "히브리서", "야": "야고보서", "벧전": "베드로전서",
+        "벧후": "베드로후서", "요1": "요한1서", "요2": "요한2서", "요3": "요한3서",
+        "유": "유다서", "계": "요한계시록"
+    };
 
     window.addEventListener('mousedown', (e) => {
         if (e.button === 3) { e.preventDefault(); goBack(); }
     });
-
     window.addEventListener('click', (e) => {
         const popup = document.getElementById('tt-popup-layer');
         if(popup.style.display === 'flex' && !popup.contains(e.target) && !e.target.classList.contains('slot-10min') && !e.target.classList.contains('slot-input')) {
             popup.style.display = 'none';
         }
     });
-
     function postToGoogle(payload) {
         const formBody = new URLSearchParams();
         for (let key in payload) { formBody.append(key, payload[key] !== undefined ? payload[key] : ""); }
@@ -366,11 +424,19 @@
                     category: d.category ? String(d.category).trim() : "미분류"
                 };
             });
+
+            if (data.bibleData) {
+                bibleDataArray = data.bibleData;
+                console.log(`성경 데이터 로드 완료: ${bibleDataArray.length} 구절`);
+            }
+
             categories = [...new Set(allData.map(d => d.category))].filter(c => c && c !== '설교노트' && c !== '다이어리');
             if(!categories.includes("미분류")) categories.unshift("미분류");
             renderHome();
             renderSermonTable();
             if(currentMainMode === 'diary') renderCalendar();
+
+            setupBibleAutoLinkEngine();
         } catch(e) { 
             console.error("데이터 로드 실패:", e);
         }
@@ -380,7 +446,8 @@
         const select = document.getElementById('calendar-year-select');
         if(!select) return; select.innerHTML = '';
         for(let y = 2020; y <= 2035; y++) {
-            const opt = document.createElement('option'); opt.value = y; opt.innerText = `${y}년`;
+            const opt = document.createElement('option');
+            opt.value = y; opt.innerText = `${y}년`;
             if(y === currentYear) opt.selected = true; select.appendChild(opt);
         }
     }
@@ -394,11 +461,39 @@
     }
 
     function selectYear(year) { currentYear = parseInt(year); renderCalendar(); }
-    function switchMainMode(m) { currentMainMode = m; document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`)); goHome(); }
-    function goHome() { showSection(currentMainMode === 'dejavu' ? 'home-view' : (currentMainMode === 'sermon' ? 'sermon-home-view' : 'diary-home-view')); if(currentMainMode === 'diary') renderCalendar(); renderHome(); renderSermonTable(); }
-    function showSection(id) { document.querySelectorAll('.section').forEach(s => s.style.display = 'none'); document.getElementById('timeline-view').style.display = 'none'; document.getElementById(id).style.display = 'block'; }
-    function goBack() { if(docHistory.length > 0) loadDoc(docHistory.pop(), true); else goHome(); }
     
+    function switchMainMode(m) { 
+        currentMainMode = m; 
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `mode-${m}`)); 
+        goHome(); 
+    }
+    
+    function goHome() { 
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById('timeline-view').style.display = 'none'; 
+        
+        if(currentMainMode === 'dejavu') {
+            document.getElementById('home-view').style.display = 'block';
+            renderHome();
+        } else if(currentMainMode === 'sermon') {
+            document.getElementById('sermon-home-view').style.display = 'block';
+            renderSermonTable();
+        } else if(currentMainMode === 'diary') {
+            document.getElementById('diary-home-view').style.display = 'block';
+            renderCalendar();
+        } else if(currentMainMode === 'bible') {
+            document.getElementById('bible-view').style.display = 'block';
+            initBibleDropdowns();
+        }
+    }
+    
+    function showSection(id) { 
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.getElementById('timeline-view').style.display = 'none'; 
+        document.getElementById(id).style.display = 'block'; 
+    }
+    
+    function goBack() { if(docHistory.length > 0) loadDoc(docHistory.pop(), true); else goHome(); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function exec(c) { document.execCommand(c, false, null); }
     
@@ -435,17 +530,191 @@
         document.querySelectorAll('.db-card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none');
     }
 
+    /* 성경 전용 핵심 기능 */
+    function initBibleDropdowns() {
+        const bookSelect = document.getElementById('bible-book-select');
+        if(!bookSelect) return;
+        
+        bookSelect.innerHTML = '';
+        BIBLE_BOOKS.forEach(book => {
+            let opt = document.createElement('option');
+            opt.value = book;
+            opt.innerText = book;
+            bookSelect.appendChild(opt);
+        });
+        onBibleBookChange();
+    }
+
+    function onBibleBookChange() {
+        const bookSelect = document.getElementById('bible-book-select').value;
+        const chapSelect = document.getElementById('bible-chapter-select');
+        const bookVerses = bibleDataArray.filter(b => b.book === bookSelect);
+        const chapters = [...new Set(bookVerses.map(b => parseInt(b.chapter)))].sort((a,b) => a - b);
+        
+        chapSelect.innerHTML = '';
+        if(chapters.length === 0) {
+            let opt = document.createElement('option');
+            opt.innerText = "1장 (데이터 없음)";
+            chapSelect.appendChild(opt);
+        } else {
+            chapters.forEach(ch => {
+                let opt = document.createElement('option');
+                opt.value = ch;
+                opt.innerText = `${ch}장`;
+                chapSelect.appendChild(opt);
+            });
+        }
+        renderBibleVerses();
+    }
+
+    function renderBibleVerses() {
+        const book = document.getElementById('bible-book-select').value;
+        const chapter = document.getElementById('bible-chapter-select').value;
+        const tbody = document.getElementById('bible-verses-body');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        
+        const verses = bibleDataArray.filter(b => b.book === book && String(b.chapter) === String(chapter))
+                                     .sort((a,b) => parseInt(a.verse) - parseInt(b.verse));
+                                     
+        if(verses.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-light);">성경 데이터를 불러오는 중이거나 데이터가 없습니다.</td></tr>`;
+            return;
+        }
+        
+        verses.forEach(v => {
+            let tr = document.createElement('tr');
+            tr.style.borderBottom = "1px solid var(--border)";
+            tr.style.color = "var(--text)";
+            tr.innerHTML = `
+                <td style="padding:12px; font-weight:bold; color:var(--accent-hover);">${v.verse}절</td>
+                <td style="padding:12px; line-height:1.5;">${v.saebunyeok || '-'}</td>
+                <td style="padding:12px; line-height:1.5; color:var(--text-light);">${v.easy || '-'}</td>
+                <td style="padding:12px; line-height:1.5; font-family:serif; font-size:15px;">${v.niv || '-'}</td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-main" style="padding:4px 8px; font-size:12px;" onclick="quoteVerseToEditor('${v.book}', ${v.chapter}, ${v.verse}, '${(v.saebunyeok || '').replace(/'/g, "\\'")}')">인용</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function quoteVerseToEditor(book, chapter, verse, text) {
+        const quoteText = ` [${book} ${chapter}:${verse} "${text}"] `;
+        const qtEditor = document.getElementById('diary-qt'); 
+        const mainEditor = document.getElementById('ed-content'); 
+        
+        if (document.getElementById('diary-editor-view') && document.getElementById('diary-editor-view').style.display === 'block') {
+            if(qtEditor) { qtEditor.innerHTML += quoteText; alert("다이어리 QT에 인용되었습니다!"); }
+        } else if (document.getElementById('edit-view') && document.getElementById('edit-view').style.display === 'block') {
+            if(mainEditor) { mainEditor.innerHTML += quoteText; alert("현재 편집 중인 노트에 인용되었습니다!"); }
+        } else {
+            alert("글쓰기 창(노트 편집 또는 다이어리 QT)을 먼저 열어두신 후 인용 버튼을 눌러주세요.");
+        }
+    }
+
+    function setupBibleAutoLinkEngine() {
+        const targets = ['diary-qt', 'ed-content']; 
+        targets.forEach(id => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.addEventListener('keyup', function(e) {
+                if(e.key === ' ' || e.key === 'Enter') {
+                    parseAndConvertBibleLinks(el);
+                }
+            });
+        });
+    }
+
+    function parseAndConvertBibleLinks(element) {
+        const regex = /\[([가-힣0-9]+)\s+([0-9]+):([0-9]+)\]/g;
+        let html = element.innerHTML;
+        let modified = false;
+        
+        html = html.replace(regex, function(match, book, chapter, verse) {
+            let fullBookName = BIBLE_SHORT_MAP[book] || book;
+            const found = bibleDataArray.find(b => b.book === fullBookName && String(b.chapter) === String(chapter) && String(b.verse) === String(verse));
+            
+            if (found) {
+                modified = true;
+                return `<span class="auto-link" style="color:#0984e3; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="previewBibleVerse('${fullBookName}', ${chapter}, ${verse})">${match}</span>`;
+            }
+            return match;
+        });
+        
+        if(modified) {
+            const selection = window.getSelection();
+            element.innerHTML = html;
+            element.focus();
+            const newRange = document.createRange();
+            newRange.selectNodeContents(element);
+            newRange.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }
+    }
+
+    function previewBibleVerse(book, chapter, verse) {
+        const found = bibleDataArray.find(b => b.book === book && String(b.chapter) === String(chapter) && String(b.verse) === String(verse));
+        if (!found) {
+            alert("해당 성경 구절 데이터를 찾을 수 없습니다.");
+            return;
+        }
+        
+        const modal = document.getElementById('timeline-modal');
+        const title = document.getElementById('tl-modal-title');
+        const body = document.getElementById('tl-modal-body');
+        
+        if(modal && title && body) {
+            title.innerText = `📖 ${book} ${chapter}장 ${verse}절`;
+            body.innerHTML = `
+                <div style="margin-bottom:12px; padding:10px; background:var(--bg); border-radius:8px;">
+                    <strong style="color:var(--accent-hover)">개역개정:</strong> ${found.saebunyeok || '데이터 없음'}
+                </div>
+                <div style="margin-bottom:12px; padding:10px; background:var(--bg); border-radius:8px;">
+                    <strong style="color:#0984e3">표준새번역:</strong> ${found.easy || '데이터 없음'}
+                </div>
+                <div style="margin-bottom:12px; padding:10px; background:var(--bg); border-radius:8px;">
+                    <strong style="color:var(--text-light)">영어 성경:</strong> <span style="font-family:serif;">${found.niv || '데이터 없음'}</span>
+                </div>
+                <div style="text-align:right; margin-top:15px;">
+                    <button class="btn-main" onclick="insertVerseToCurrentEditor('${book}', ${chapter}, ${verse}, '${(found.saebunyeok || '').replace(/'/g, "\\'")}')">이 구절 본문에 인용하기</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+    }
+
+    function insertVerseToCurrentEditor(book, chapter, verse, text) {
+        const formattedText = ` [${book} ${chapter}:${verse} "${text}"] `;
+        const qtEditor = document.getElementById('diary-qt'); 
+        const mainEditor = document.getElementById('ed-content'); 
+        
+        if (document.getElementById('diary-editor-view').style.display === 'block' && qtEditor) {
+            qtEditor.innerHTML += formattedText;
+        } else if (document.getElementById('edit-view').style.display === 'block' && mainEditor) {
+            mainEditor.innerHTML += formattedText;
+        } else {
+            alert("글쓰기 창(QT 또는 노트 작성)이 열려있지 않아 인용할 수 없습니다.");
+            return;
+        }
+        closeTimelineModal();
+    }
+
     function addCategory() { const name = prompt("새 카테고리 이름:"); if (name && !categories.includes(name)) { categories.push(name); renderHome(); } }
     function renameCategory(oldName) {
         const newName = prompt("카테고리 수정:", oldName);
-        if (newName && newName !== oldName) { categories = categories.map(c => c === oldName ? newName : c); allData.forEach(d => { if(d.category === oldName) d.category = newName; }); renderHome(); }
+        if (newName && newName !== oldName) { categories = categories.map(c => c === oldName ? newName : c);
+        allData.forEach(d => { if(d.category === oldName) d.category = newName; }); renderHome();
+        }
     }
     function drag(ev, title) { ev.dataTransfer.setData("text/plain", title); }
     function drop(ev, newCat) { ev.preventDefault(); ev.currentTarget.classList.remove('drag-over'); const title = ev.dataTransfer.getData("text/plain"); const item = allData.find(d => d.title === title); if (item && item.category !== newCat) { item.category = newCat; renderHome(); postToGoogle(item); } }
 
     /* [설교 모드] */
     function renderSermonTable() {
-        const tbody = document.getElementById('sermon-list-body'); if(!tbody) return;
+        const tbody = document.getElementById('sermon-list-body');
+        if(!tbody) return;
         let sermons = allData.filter(d => d.isSermon);
         sermons.sort((a, b) => {
             let valA = formatDate(a.date, a.date_str) || '1900-01-01', valB = formatDate(b.date, b.date_str) || '1900-01-01';
@@ -459,7 +728,8 @@
 
     /* [문서 뷰어] */
     function loadDoc(title, isBack=false) {
-        const item = allData.find(d => d.title === title); if(!item) return;
+        const item = allData.find(d => d.title === title);
+        if(!item) return;
         if (!isBack && document.getElementById('dv-title').innerText) docHistory.push(document.getElementById('dv-title').innerText);
         showSection('doc-view');
         document.getElementById('dv-title').innerText = title;
@@ -474,17 +744,21 @@
 
     function showEditor() {
         showSection('edit-view'); ["ed-title","ed-date","ed-preacher","ed-scripture","ed-sermonTopic","ed-year"].forEach(i=>document.getElementById(i).value="");
-        document.getElementById('ed-content').innerHTML=""; document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); toggleEditorFields();
+        document.getElementById('ed-content').innerHTML="";
+        document.getElementById('ed-isSermon').checked = (currentMainMode === 'sermon'); toggleEditorFields();
     }
     function toggleEditorFields() { const s = document.getElementById('ed-isSermon').checked; document.getElementById('sermon-fields').style.display = s ? 'block' : 'none'; document.getElementById('dejavu-fields').style.display = s ? 'none' : 'block'; }
     function editCurrent() {
-        const d = allData.find(x => x.title === document.getElementById('dv-title').innerText); if (!d) return;
+        const d = allData.find(x => x.title === document.getElementById('dv-title').innerText);
+        if (!d) return;
         showSection('edit-view'); document.getElementById('ed-title').value = d.title; document.getElementById('ed-content').innerHTML = d.content; document.getElementById('ed-isSermon').checked = d.isSermon; toggleEditorFields();
-        if (d.isSermon) { document.getElementById('ed-date').value = formatDate(d.date, d.date_str); ["preacher","scripture","sermonTopic"].forEach(f => document.getElementById(`ed-${f}`).value = d[f] || ""); } else { document.getElementById('ed-year').value = d.year || ""; }
+        if (d.isSermon) { document.getElementById('ed-date').value = formatDate(d.date, d.date_str); ["preacher","scripture","sermonTopic"].forEach(f => document.getElementById(`ed-${f}`).value = d[f] || "");
+        } else { document.getElementById('ed-year').value = d.year || ""; }
     }
 
     function save() {
-        const title = document.getElementById('ed-title').value.trim(); if(!title) { alert("제목을 입력하세요."); return; }
+        const title = document.getElementById('ed-title').value.trim();
+        if(!title) { alert("제목을 입력하세요."); return; }
         const isSermon = document.getElementById('ed-isSermon').checked;
         let item = allData.find(d => d.title === title); if(!item) { item = { title, content: "" }; allData.push(item); }
         item.isSermon = isSermon; item.content = document.getElementById('ed-content').innerHTML;
@@ -493,9 +767,10 @@
         postToGoogle(item); alert("저장되었습니다."); goHome();
     }
 
-    /* [다이어리 모드 - 공간 좌표 매핑 시스템] */
+    /* [다이어리 모드] */
     function renderCalendar() {
-        const grid = document.getElementById('calendar-grid'); if(!grid) return; grid.innerHTML = '';
+        const grid = document.getElementById('calendar-grid');
+        if(!grid) return; grid.innerHTML = '';
         document.getElementById('calendar-title').innerText = `${currentMonth}월`;
         
         const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
@@ -507,9 +782,8 @@
         
         for(let day = 1; day <= numDays; day++) {
             const box = document.createElement('div');
-            
             const totalSlots = firstDay + day - 1;
-            const weekIndex = Math.floor(totalSlots / 7) + 1; 
+            const weekIndex = Math.floor(totalSlots / 7) + 1;
             const dow = totalSlots % 7;                       
             const dayOfWeekKo = WEEK_DAYS_KO[dow];
             
@@ -518,17 +792,15 @@
 
             box.className = `day-box${dow === 0 ? ' sun' : (dow === 6 ? ' sat' : '')}`;
             box.onclick = () => openDiaryEditor(spatialPositionKey, dateLabelText);
-            
             const numDiv = document.createElement('div'); numDiv.className = 'day-num'; numDiv.innerText = day; box.appendChild(numDiv);
-            
             const dayData = allData.find(d => d.category === '다이어리' && String(d.title).trim() === spatialPositionKey);
             if(dayData) {
                 const todoCont = document.createElement('div'); todoCont.className = 'mini-todo-container';
                 if(dayData.scripture) { 
-                    const p1 = document.createElement('p'); p1.className = 'mini-todo-list'; p1.style.borderLeftColor = '#FAC608'; p1.innerText = `QT: ${dayData.scripture}`; todoCont.appendChild(p1); 
+                    const p1 = document.createElement('p'); p1.className = 'mini-todo-list'; p1.style.borderLeftColor = '#FAC608'; p1.innerText = `QT: ${dayData.scripture}`; todoCont.appendChild(p1);
                 }
                 if(dayData.content) { 
-                    const p2 = document.createElement('p'); p2.className = 'mini-todo-list'; p2.style.borderLeftColor = '#2d3436'; p2.innerText = dayData.content; todoCont.appendChild(p2); 
+                    const p2 = document.createElement('p'); p2.className = 'mini-todo-list'; p2.style.borderLeftColor = '#2d3436'; p2.innerText = dayData.content; todoCont.appendChild(p2);
                 }
                 box.appendChild(todoCont);
             }
@@ -538,49 +810,34 @@
     }
 
     function openDiaryEditor(positionKey, labelText) {
-        diarySelectedPosKey = positionKey;
-        diarySelectedLabelText = labelText;
+        diarySelectedPosKey = positionKey; diarySelectedLabelText = labelText;
         showSection('diary-editor-view');
         document.getElementById('diary-date-label').innerText = `${labelText} [${positionKey}]`;
         document.getElementById('diary-qt').innerHTML = '';
         document.getElementById('diary-todo').innerHTML = '';
-        
         document.getElementById('tt-popup-layer').style.display = 'none';
-        currentTimetableState = {}; 
-        
+        currentTimetableState = {};
         const existing = allData.find(d => d.category === '다이어리' && String(d.title).trim() === positionKey);
         if(existing) {
             document.getElementById('diary-qt').innerHTML = existing.scripture || '';
             document.getElementById('diary-todo').innerHTML = existing.content || '';
-            if(existing.preacher) {
-                try { currentTimetableState = JSON.parse(existing.preacher); } catch(e) { currentTimetableState = {}; }
-            }
+            if(existing.preacher) { try { currentTimetableState = JSON.parse(existing.preacher); } catch(e) { currentTimetableState = {}; } }
         }
         renderTimetableBlocks();
     }
 
     function buildTimetableStructure() {
-        const cont = document.getElementById('diary-timetable-container'); if(!cont) return;
-        cont.innerHTML = '';
-        
+        const cont = document.getElementById('diary-timetable-container'); if(!cont) return; cont.innerHTML = '';
         for(let i=0; i<24; i++) {
-            let h = (4 + i) % 24; 
+            let h = (4 + i) % 24;
             const row = document.createElement('div'); row.className = 'time-row';
             const label = document.createElement('div'); label.className = 'time-label'; label.innerText = `${String(h).padStart(2,'0')}:00`;
             row.appendChild(label);
-            
             const content = document.createElement('div'); content.className = 'time-content';
-            
             for(let m=0; m<6; m++) {
-                const globalIdx = (h * 6) + m; 
-                const slot = document.createElement('div');
-                slot.className = 'slot-10min';
-                slot.setAttribute('data-global-idx', globalIdx);
-                
-                slot.onclick = (e) => {
-                    if(e.target.classList.contains('slot-input')) return; 
-                    openTimetablePopup(slot, globalIdx, e);
-                };
+                const globalIdx = (h * 6) + m;
+                const slot = document.createElement('div'); slot.className = 'slot-10min'; slot.setAttribute('data-global-idx', globalIdx);
+                slot.onclick = (e) => { if(e.target.classList.contains('slot-input')) return; openTimetablePopup(slot, globalIdx, e); };
                 content.appendChild(slot);
             }
             row.appendChild(content); cont.appendChild(row);
@@ -588,19 +845,12 @@
     }
 
     function openTimetablePopup(targetEl, globalIdx, event) {
-        event.stopPropagation();
-        activeSlotGlobalIdx = globalIdx;
-        
-        const popup = document.getElementById('tt-popup-layer');
-        popup.style.display = 'flex';
-        
+        event.stopPropagation(); activeSlotGlobalIdx = globalIdx;
+        const popup = document.getElementById('tt-popup-layer'); popup.style.display = 'flex';
         const rect = targetEl.getBoundingClientRect();
-        popup.style.top = `${window.scrollY + rect.top - 75}px`; 
-        popup.style.left = `${window.scrollX + rect.left - 30}px`;
-        
+        popup.style.top = `${window.scrollY + rect.top - 75}px`; popup.style.left = `${window.scrollX + rect.left - 30}px`;
         document.querySelectorAll('.tt-color-dot').forEach(dot => {
-            const bgStr = dot.style.backgroundColor.replace(/\s/g, '');
-            const targetStr = selectedPopupColorVal.replace(/\s/g, '');
+            const bgStr = dot.style.backgroundColor.replace(/\s/g, ''); const targetStr = selectedPopupColorVal.replace(/\s/g, '');
             dot.style.border = (bgStr === targetStr) ? '2px solid #2d3436' : '1px solid rgba(0,0,0,0.15)';
         });
         document.getElementById('tt-duration-input').focus();
@@ -609,118 +859,66 @@
     function selectPopupColor(color) {
         selectedPopupColorVal = color;
         document.querySelectorAll('.tt-color-dot').forEach(dot => {
-            const bgStr = dot.style.backgroundColor.replace(/\s/g, '');
-            const targetStr = color.replace(/\s/g, '');
+            const bgStr = dot.style.backgroundColor.replace(/\s/g, ''); const targetStr = color.replace(/\s/g, '');
             dot.style.border = (bgStr === targetStr) ? '2px solid #2d3436' : '1px solid rgba(0,0,0,0.15)';
         });
     }
 
     function applyTimetableBlock() {
         const duration = parseInt(document.getElementById('tt-duration-input').value) || 30;
-        const totalSlotsNeeded = Math.ceil(duration / 10); 
-        if(activeSlotGlobalIdx === null) return;
-        
+        const totalSlotsNeeded = Math.ceil(duration / 10); if(activeSlotGlobalIdx === null) return;
         for(let i = 0; i < totalSlotsNeeded; i++) {
-            const currentIdx = (activeSlotGlobalIdx + i) % 144; 
-            currentTimetableState[currentIdx] = {
-                color: selectedPopupColorVal,
-                text: currentTimetableState[currentIdx]?.text || "",
-                isMaster: (i === 0), 
-                span: totalSlotsNeeded
-            };
+            const currentIdx = (activeSlotGlobalIdx + i) % 144;
+            currentTimetableState[currentIdx] = { color: selectedPopupColorVal, text: currentTimetableState[currentIdx]?.text || "", isMaster: (i === 0), span: totalSlotsNeeded };
         }
-        document.getElementById('tt-popup-layer').style.display = 'none';
-        renderTimetableBlocks();
-        
+        document.getElementById('tt-popup-layer').style.display = 'none'; renderTimetableBlocks();
         setTimeout(() => {
-            const masterInput = document.querySelector(`.slot-10min[data-global-idx="${activeSlotGlobalIdx}"] .slot-input`);
-            if(masterInput) masterInput.focus();
+            const masterInput = document.querySelector(`.slot-10min[data-global-idx="${activeSlotGlobalIdx}"] .slot-input`); if(masterInput) masterInput.focus();
         }, 50);
     }
 
     function clearTimetableBlock() {
         if(activeSlotGlobalIdx === null) return;
         const targetBlock = currentTimetableState[activeSlotGlobalIdx];
-        
         if(targetBlock) {
             const masterIdx = targetBlock.isMaster ? activeSlotGlobalIdx : Object.keys(currentTimetableState).find(k => currentTimetableState[k].isMaster && (activeSlotGlobalIdx - k < currentTimetableState[k].span));
-            const baseIdx = masterIdx ? parseInt(masterIdx) : activeSlotGlobalIdx;
-            const spanCount = currentTimetableState[baseIdx]?.span || 1;
-            for(let i=0; i<spanCount; i++) {
-                delete currentTimetableState[(baseIdx + i) % 144];
-            }
-        } else {
-            delete currentTimetableState[activeSlotGlobalIdx];
-        }
-        document.getElementById('tt-popup-layer').style.display = 'none';
-        renderTimetableBlocks();
+            const baseIdx = masterIdx ? parseInt(masterIdx) : activeSlotGlobalIdx; const spanCount = currentTimetableState[baseIdx]?.span || 1;
+            for(let i=0; i<spanCount; i++) { delete currentTimetableState[(baseIdx + i) % 144]; }
+        } else { delete currentTimetableState[activeSlotGlobalIdx]; }
+        document.getElementById('tt-popup-layer').style.display = 'none'; renderTimetableBlocks();
     }
 
     function renderTimetableBlocks() {
-        buildTimetableStructure(); 
+        buildTimetableStructure();
         for(let idx in currentTimetableState) {
-            const block = currentTimetableState[idx];
-            if(!block) continue;
-            const slotEl = document.querySelector(`.slot-10min[data-global-idx="${idx}"]`);
-            if(!slotEl) continue;
-            
+            const block = currentTimetableState[idx]; if(!block) continue;
+            const slotEl = document.querySelector(`.slot-10min[data-global-idx="${idx}"]`); if(!slotEl) continue;
             slotEl.style.backgroundColor = block.color;
-            if(block.isMaster) {
-                slotEl.innerHTML = `<input type="text" class="slot-input" value="${block.text || ''}" placeholder="입력" oninput="updateSlotText(${idx}, this.value)">`;
-            } else {
-                slotEl.innerHTML = `<input type="text" class="slot-input" style="opacity:0.3;" value="..." disabled>`;
-            }
+            if(block.isMaster) { slotEl.innerHTML = `<input type="text" class="slot-input" value="${block.text || ''}" placeholder="입력" oninput="updateSlotText(${idx}, this.value)">`; }
+            else { slotEl.innerHTML = `<input type="text" class="slot-input" style="opacity:0.3;" value="..." disabled>`; }
         }
     }
 
     function updateSlotText(masterIdx, value) {
-        if(!currentTimetableState[masterIdx]) return;
-        currentTimetableState[masterIdx].text = value;
+        if(!currentTimetableState[masterIdx]) return; currentTimetableState[masterIdx].text = value;
         const spanCount = currentTimetableState[masterIdx].span || 1;
-        for(let i=1; i<spanCount; i++) {
-            const childIdx = (masterIdx + i) % 144;
-            if(currentTimetableState[childIdx]) currentTimetableState[childIdx].text = value;
-        }
+        for(let i=1; i<spanCount; i++) { const childIdx = (masterIdx + i) % 144; if(currentTimetableState[childIdx]) currentTimetableState[childIdx].text = value; }
     }
 
     function saveDiary() {
         if(!diarySelectedPosKey) return;
-        
         const qtText = document.getElementById('diary-qt').innerText.trim();
         const todoText = document.getElementById('diary-todo').innerText.trim();
         const timetableJson = JSON.stringify(currentTimetableState);
-        
         let item = allData.find(d => d.category === '다이어리' && d.title === diarySelectedPosKey);
-        if(!item) { 
-            item = { title: diarySelectedPosKey, category: '다이어리', isSermon: false }; 
-            allData.push(item); 
-        }
-        
-        item.scripture = qtText; 
-        item.content = todoText; 
-        item.preacher = timetableJson; 
-
-        const payload = {
-            title: diarySelectedPosKey, 
-            category: "다이어리",
-            scripture: qtText,          
-            content: todoText,          
-            preacher: timetableJson     
-        };
-        
-        postToGoogle(payload);
-        alert("다이어리 좌표 데이터가 안전하게 구글 시트2에 저장되었습니다!");
-        goHome();
+        if(!item) { item = { title: diarySelectedPosKey, category: '다이어리', isSermon: false }; allData.push(item); }
+        item.scripture = qtText; item.content = todoText; item.preacher = timetableJson; 
+        const payload = { title: diarySelectedPosKey, category: "다이어리", scripture: qtText, content: todoText, preacher: timetableJson };
+        postToGoogle(payload); alert("다이어리 좌표 데이터가 안전하게 구글 시트에 저장되었습니다!"); goHome();
     }
 
     /* [타임라인 엔진] */
-    function showTimeline() { 
-        showSection('timeline-view'); 
-        document.getElementById('timeline-view').style.display = 'block'; 
-        resizeCanvas(); 
-        calculateTimelineLayout(); 
-        drawTimeline(); 
-    }
+    function showTimeline() { showSection('timeline-view'); document.getElementById('timeline-view').style.display = 'block'; resizeCanvas(); calculateTimelineLayout(); drawTimeline(); }
     function closeTimelineView() { document.getElementById('timeline-view').style.display = 'none'; goHome(); }
     function resizeCanvas() { tlCanvas.width = window.innerWidth; tlCanvas.height = window.innerHeight - 65; }
 
@@ -728,19 +926,15 @@
         const searchQuery = document.getElementById('tl-search').value.toLowerCase();
         let sourceItems = allData.filter(d => !d.isSermon && d.year && d.category !== '다이어리');
         if(searchQuery) sourceItems = sourceItems.filter(d => d.title.toLowerCase().includes(searchQuery) || d.year.includes(searchQuery));
-        
         sourceItems.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
-        const baseYear = 1900, mockYearWidth = 80; 
-        
+        const baseYear = 1900, mockYearWidth = 80;
         timelineProcessedItems = sourceItems.map(d => {
             let startY = parseInt(d.year), endY = startY;
             if(d.year.includes('~')) { const p = d.year.split('~'); startY = parseInt(p[0]); endY = parseInt(p[1]); }
             return { ref: d, startYear: isNaN(startY)?1900:startY, endYear: isNaN(endY)?1900:endY, isEvent: d.category === '사건' };
         });
-
         let normalProcessed = timelineProcessedItems.filter(item => !item.isEvent);
         let placementList = [];
-
         normalProcessed.forEach(item => {
             tlCtx.font = "bold 12px Pretendard";
             const text = `[${item.ref.year}] ${item.ref.title}`;
@@ -758,7 +952,7 @@
                     }
                 }
                 if (!hasCollision) break;
-                level++; if (level > 40) break; 
+                level++; if (level > 40) break;
             }
             item.level = level; placementList.push({ x: calcStartX, w: blockWidth, level: level });
         });
@@ -767,60 +961,45 @@
     function drawTimeline() {
         if(document.getElementById('timeline-view').style.display === 'none') return;
         tlCtx.clearRect(0, 0, tlCanvas.width, tlCanvas.height);
-        
         const baseYear = 1900, yearWidth = 80 * tlScale, xAxisY = tlCanvas.height - 120;
         const startYear = Math.floor((-tlOffsetX) / yearWidth) + baseYear - 5;
         const endYear = Math.ceil((tlCanvas.width - tlOffsetX) / yearWidth) + baseYear + 5;
-        
         for(let y = startYear; y <= endYear; y++) {
             const xStr = (y - baseYear) * yearWidth + tlOffsetX;
             if(y % 100 === 0) {
                 tlCtx.strokeStyle = "rgba(255, 255, 255, 0.22)"; tlCtx.lineWidth = 2.5;
                 tlCtx.beginPath(); tlCtx.moveTo(xStr, 0); tlCtx.lineTo(xStr, xAxisY + 40); tlCtx.stroke();
-                tlCtx.fillStyle = "#FAC608"; tlCtx.font = "black 13px Pretendard"; tlCtx.textAlign = "center"; 
-                tlCtx.fillText(String(y) + "년", xStr, xAxisY + 30);
+                tlCtx.fillStyle = "#FAC608"; tlCtx.font = "black 13px Pretendard"; tlCtx.textAlign = "center"; tlCtx.fillText(String(y) + "년", xStr, xAxisY + 30);
             } else if(y % 10 === 0) {
                 tlCtx.strokeStyle = "rgba(255, 255, 255, 0.06)"; tlCtx.lineWidth = 0.8;
                 tlCtx.beginPath(); tlCtx.moveTo(xStr, 0); tlCtx.lineTo(xStr, xAxisY + 15); tlCtx.stroke();
-                tlCtx.fillStyle = "#888"; tlCtx.font = "normal 11px Pretendard"; tlCtx.textAlign = "center"; 
-                tlCtx.fillText(String(y), xStr, xAxisY + 18);
+                tlCtx.fillStyle = "#888"; tlCtx.font = "normal 11px Pretendard"; tlCtx.textAlign = "center"; tlCtx.fillText(String(y), xStr, xAxisY + 18);
             }
         }
-        
-        tlCtx.strokeStyle = "#444"; tlCtx.lineWidth = 3; 
-        tlCtx.beginPath(); tlCtx.moveTo(0, xAxisY); tlCtx.lineTo(tlCanvas.width, xAxisY); tlCtx.stroke();
+        tlCtx.strokeStyle = "#444"; tlCtx.lineWidth = 3; tlCtx.beginPath(); tlCtx.moveTo(0, xAxisY); tlCtx.lineTo(tlCanvas.width, xAxisY); tlCtx.stroke();
         
         timelineProcessedItems.forEach(item => {
             if (!item.isEvent) return;
             const startX = (item.startYear - baseYear) * yearWidth + tlOffsetX;
             const endX = (item.endYear - baseYear) * yearWidth + tlOffsetX;
             const width = Math.max(endX - startX, 20);
-            
             tlCtx.fillStyle = "rgba(118, 186, 201, 0.08)"; tlCtx.fillRect(startX, 10, width, xAxisY - 10);
             tlCtx.strokeStyle = "rgba(118, 186, 201, 0.2)"; tlCtx.lineWidth = 1; tlCtx.strokeRect(startX, 10, width, xAxisY - 10);
-            tlCtx.fillStyle = "rgba(118, 186, 201, 0.7)"; tlCtx.font = "bold 11px Pretendard"; tlCtx.textAlign = "left";
-            tlCtx.fillText(`🚩 [사건] ${item.ref.title} (${item.ref.year})`, startX + 6, 25);
+            tlCtx.fillStyle = "rgba(118, 186, 201, 0.7)"; tlCtx.font = "bold 11px Pretendard"; tlCtx.textAlign = "left"; tlCtx.fillText(`🚩 [사건] ${item.ref.title} (${item.ref.year})`, startX + 6, 25);
             item.ref._tlPos = { x: startX, y: 10, w: width, h: xAxisY - 10 };
         });
-        
         timelineProcessedItems.forEach(item => {
             if (item.isEvent) return;
             const startX = (item.startYear - baseYear) * yearWidth + tlOffsetX;
             const text = `[${item.ref.year}] ${item.ref.title}`;
-            
             tlCtx.font = "bold 12px Pretendard";
             const textWidth = tlCtx.measureText(text).width + 24;
             const endX = item.ref.year.includes('~') ? (item.endYear - baseYear) * yearWidth + tlOffsetX : startX + textWidth;
             const blockWidth = item.ref.year.includes('~') ? Math.max(endX - startX, textWidth) : textWidth;
             const blockHeight = 36, targetY = xAxisY - 50 - (item.level * 46);
-            
-            tlCtx.fillStyle = "rgba(250, 198, 8, 0.9)";
-            tlCtx.beginPath();
-            if(tlCtx.roundRect) tlCtx.roundRect(startX, targetY, blockWidth, blockHeight, 6);
-            else tlCtx.fillRect(startX, targetY, blockWidth, blockHeight);
-            tlCtx.fill();
-            
-            tlCtx.fillStyle = "#1e272e"; tlCtx.textAlign = "left"; tlCtx.fillText(text, startX + 12, targetY + 22);
+            tlCtx.fillStyle = "rgba(250, 198, 8, 0.9)"; tlCtx.beginPath();
+            if(tlCtx.roundRect) tlCtx.roundRect(startX, targetY, blockWidth, blockHeight, 6); else tlCtx.fillRect(startX, targetY, blockWidth, blockHeight);
+            tlCtx.fill(); tlCtx.fillStyle = "#1e272e"; tlCtx.textAlign = "left"; tlCtx.fillText(text, startX + 12, targetY + 22);
             item.ref._tlPos = { x: startX, y: targetY, w: blockWidth, h: blockHeight };
         });
     }
@@ -829,109 +1008,36 @@
         document.getElementById('tl-modal-title').innerText = item.title;
         let metaHtml = `<div style="font-size:0.85rem; color:var(--text-light); font-weight:bold; margin-bottom:15px;">카테고리: ${item.category} | 시대/연도: ${item.year}</div>`;
         let contentHtml = item.content;
-        
-        allData.forEach(d => {
-            if (d.title !== item.title && contentHtml.includes(d.title)) {
-                contentHtml = contentHtml.replace(new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g'), `<span class="auto-link" style="color:#0984e3; text-decoration:underline;" onclick="closeTimelineModal(); switchMainMode('dejavu'); loadDoc('${d.title}');">${d.title}</span>`);
-            }
-        });
+        allData.forEach(d => { if (d.title !== item.title && contentHtml.includes(d.title)) { contentHtml = contentHtml.replace(new RegExp(`(?<!<[^>]*)${d.title}(?![^<]*>)`, 'g'), `<span class="auto-link" style="color:#0984e3; text-decoration:underline;" onclick="closeTimelineModal(); switchMainMode('dejavu'); loadDoc('${d.title}');">${d.title}</span>`); } });
         document.getElementById('tl-modal-body').innerHTML = metaHtml + contentHtml;
         document.getElementById('timeline-modal').style.display = 'flex';
     }
-    
     function closeTimelineModal() { document.getElementById('timeline-modal').style.display = 'none'; }
 
-    /* --- [PC용 마우스&휠 제어 이벤트] --- */
-    tlCanvas.addEventListener('wheel', (e) => { 
-        e.preventDefault(); 
-        tlScale = Math.max(0.005, Math.min(tlScale * (e.deltaY > 0 ? 0.9 : 1.1), 0.2)); 
-        drawTimeline(); 
-    }, { passive: false });
-
+    /* PC 및 모바일 컨트롤 제어 엔진 */
+    tlCanvas.addEventListener('wheel', (e) => { e.preventDefault(); tlScale = Math.max(0.005, Math.min(tlScale * (e.deltaY > 0 ? 0.9 : 1.1), 0.2)); drawTimeline(); }, { passive: false });
     tlCanvas.addEventListener('mousedown', (e) => { tlIsDragging = true; tlMoved = false; tlLastX = e.clientX; });
-    window.addEventListener('mousemove', (e) => { 
-        if(tlIsDragging) { 
-            if(Math.abs(e.clientX - tlLastX) > 4) tlMoved = true; 
-            tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); 
-        } 
-    });
-    window.addEventListener('mouseup', (e) => {
-        if(tlIsDragging) {
-            tlIsDragging = false;
-            if(!tlMoved) {
-                const rect = tlCanvas.getBoundingClientRect(); 
-                const clickX = e.clientX - rect.left, clickY = e.clientY - rect.top;
-                handleTimelineClick(clickX, clickY);
-            }
-        }
-    });
-
-    /* --- [🔥 아이패드/모바일 완벽 호환 터치 드래그 & 멀티 터치 핀치 줌 교정 엔진] --- */
+    window.addEventListener('mousemove', (e) => { if(tlIsDragging) { if(Math.abs(e.clientX - tlLastX) > 4) tlMoved = true; tlOffsetX += (e.clientX - tlLastX); tlLastX = e.clientX; drawTimeline(); } });
+    window.addEventListener('mouseup', (e) => { if(tlIsDragging) { tlIsDragging = false; if(!tlMoved) { const rect = tlCanvas.getBoundingClientRect(); const clickX = e.clientX - rect.left, clickY = e.clientY - rect.top; handleTimelineClick(clickX, clickY); } } });
+    
     tlCanvas.addEventListener('touchstart', (e) => {
-        // 아이패드 브라우저 고유의 터치 스크롤/제스처 차단
-        e.preventDefault(); 
-        tlMoved = false;
-        
-        if (e.touches.length === 1) {
-            tlIsDragging = true;
-            tlLastX = e.touches[0].clientX;
-        } else if (e.touches.length === 2) {
-            tlIsDragging = false; 
-            tlStartTouchDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            tlStartScale = tlScale;
-        }
-    }, { passive: false }); // iOS 제스처 방지를 위해 passive false 지정
-
-    tlCanvas.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // 아이패드 화면 위아래 튕김 및 좌우 페이지 전환 제스처 원천 차단
-        
-        if (e.touches.length === 1 && tlIsDragging) {
-            const currentX = e.touches[0].clientX;
-            const deltaX = currentX - tlLastX;
-            if (Math.abs(deltaX) > 2) tlMoved = true;
-            tlOffsetX += deltaX;
-            tlLastX = currentX;
-            drawTimeline();
-        } else if (e.touches.length === 2) {
-            const currentDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            if (tlStartTouchDist > 0) {
-                const ratio = currentDist / tlStartTouchDist;
-                tlScale = Math.max(0.005, Math.min(tlStartScale * ratio, 0.2));
-                drawTimeline();
-            }
-        }
+        e.preventDefault(); tlMoved = false;
+        if (e.touches.length === 1) { tlIsDragging = true; tlLastX = e.touches[0].clientX; } 
+        else if (e.touches.length === 2) { tlIsDragging = false; tlStartTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); tlStartScale = tlScale; }
     }, { passive: false });
-
+    tlCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && tlIsDragging) { const currentX = e.touches[0].clientX; const deltaX = currentX - tlLastX; if (Math.abs(deltaX) > 2) tlMoved = true; tlOffsetX += deltaX; tlLastX = currentX; drawTimeline(); } 
+        else if (e.touches.length === 2) { const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (tlStartTouchDist > 0) { const ratio = currentDist / tlStartTouchDist; tlScale = Math.max(0.005, Math.min(tlStartScale * ratio, 0.2)); drawTimeline(); } }
+    }, { passive: false });
     tlCanvas.addEventListener('touchend', (e) => {
-        if (tlIsDragging) {
-            tlIsDragging = false;
-            if (!tlMoved && e.changedTouches.length > 0) {
-                const rect = tlCanvas.getBoundingClientRect();
-                const clickX = e.changedTouches[0].clientX - rect.left;
-                const clickY = e.changedTouches[0].clientY - rect.top;
-                handleTimelineClick(clickX, clickY);
-            }
-        }
-        if (e.touches.length < 2) {
-            tlStartTouchDist = 0;
-        }
+        if (tlIsDragging) { tlIsDragging = false; if (!tlMoved && e.changedTouches.length > 0) { const rect = tlCanvas.getBoundingClientRect(); const clickX = e.changedTouches[0].clientX - rect.left; const clickY = e.changedTouches[0].clientY - rect.top; handleTimelineClick(clickX, clickY); } }
+        if (e.touches.length < 2) { tlStartTouchDist = 0; }
     }, { passive: true });
 
     function handleTimelineClick(clickX, clickY) {
         let clickedItem = null;
-        for (let i = allData.length - 1; i >= 0; i--) {
-            let d = allData[i];
-            if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) { 
-                clickedItem = d; 
-                break; 
-            }
-        }
+        for (let i = allData.length - 1; i >= 0; i--) { let d = allData[i]; if(d._tlPos && clickX >= d._tlPos.x && clickX <= d._tlPos.x + d._tlPos.w && clickY >= d._tlPos.y && clickY <= d._tlPos.y + d._tlPos.h) { clickedItem = d; break; } }
         if(clickedItem) openTimelineModal(clickedItem);
     }
 
